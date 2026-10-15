@@ -16,8 +16,8 @@ Authors@R:
            comment = c(ORCID = "0000-0003-4327-3730"))
     )
 Description: tfhunter is used to identify transcription factors (TFs)
-    from protein sequence data of any eukaryotic species and classify
-    them into families using multiple classification schemes.
+    from whole-genome protein sequence data of any eukaryotic species, 
+    and classify them into families using multiple classification schemes.
     TFs are identified using pre-built hidden Markov model profiles
     for DNA-binding domains. Then, auxiliary and forbidden domains are
     used with DNA-binding domains to classify TFs into families and
@@ -59,6 +59,4 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
-Depends: 
-    R (>= 4.2.0)
 LazyData: false
