@@ -7,8 +7,8 @@
 
 The data set was created using the function \code{annotate_domains()}.}
 \format{
-A list of 2 data frames (\strong{PlantTFDB} and
-\strong{TAPscan}) with domain annotation, as returned
+A list of 3 data frames (\strong{PlantTFDB}, \strong{TAPscan},
+and \strong{CISBP}) with domain annotation, as returned
 by \code{annotate_domains()}.
 }
 \usage{

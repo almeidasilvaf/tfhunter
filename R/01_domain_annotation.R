@@ -1,27 +1,41 @@
-
 #' Annotate protein sequences with domains used for TF classification
 #'
-#' Protein sequences are scanned with HMMER for domains used by the
-#' classification schemes of \strong{PlantTFDB} and \strong{TAPscan}. 
-#' For PlantTFDB, PFAM and self-built profile HMMs are used with the 
-#' domain-specific score cutoffs defined by PlantTFDB (or an E-value threshold, 
-#' for domains without cutoffs). 
-#' For TAPscan, TAPscan v4 profile HMMs are used with their
-#' gathering (GA) thresholds, as in the original TAPscan implementation.
+#' Protein sequences are scanned with HMMER for the domains used by
+#' the classification schemes of choice (see \code{list_schemes()}).
+#' Each domain annotation set has its own profile HMMs and filtering
+#' criteria:
+#' \itemize{
+#'   \item \strong{PlantTFDB}: PFAM and self-built profile HMMs, with the
+#'   domain-specific score cutoffs defined by PlantTFDB (or an E-value
+#'   threshold, for domains without cutoffs).
+#'   \item \strong{TAPscan}: TAPscan v4 profile HMMs, with their gathering
+#'   (GA) thresholds, as in the original TAPscan implementation.
+#'   \item \strong{CISBP}: Pfam profile HMMs of the DNA-binding domains used
+#'   by CIS-BP, with the thresholds used by CIS-BP (per-sequence E-value
+#'   < 0.01 and per-domain conditional E-value < 0.01). As in CIS-BP,
+#'   overlapping hits of different domains are resolved by keeping only
+#'   the most significant hit (lowest independent E-value).
+#' }
 #'
 #' @param seq An `AAStringSet` object. The sequences in this object must
 #' represent only the translated sequences of primary (or longest) transcripts.
-#' To create such an object from a FASTA file, 
+#' To create such an object from a FASTA file,
 #' use \code{Biostrings::readAAStringSet()}.
+#' @param scheme Character vector indicating the classification scheme(s)
+#' for which domains will be annotated. One or more of the schemes in
+#' \code{list_schemes()}, or 'all' to annotate domains for all schemes.
+#' Default: 'all'.
 #' @param evalue Numeric indicating the E-value threshold for \code{hmmsearch}
 #' to be used for PlantTFDB domains without pre-defined domain cutoffs.
 #' Default: 1e-05.
 #' @param threads Numeric indicating the number of threads to be used
 #' by \code{hmmsearch}. Default: 1.
 #'
-#' @return A list of 2 data frames named \strong{PlantTFDB} and
-#' \strong{TAPscan}, with domain annotation for each classification scheme.
-#' Both data frames have one row per domain hit and the following variables:
+#' @return A list of data frames with domain annotation for each domain
+#' annotation set required by the chosen scheme(s) (\strong{PlantTFDB},
+#' \strong{TAPscan}, and/or \strong{CISBP}; see variable \strong{Annotation}
+#' in \code{list_schemes()}). All data frames have one row per domain hit and
+#' the following variables:
 #' \describe{
 #'   \item{Gene}{Character, gene ID.}
 #'   \item{Domain}{Character, domain ID or name.}
@@ -40,16 +54,28 @@
 #' seq <- gsu[1:5]
 #' if(hmmer_is_installed()) {
 #'     annotate_domains(seq)
+#'
+#'     # Only domains used by CIS-BP's scheme
+#'     annotate_domains(seq, scheme = "CISBP")
 #' }
-annotate_domains <- function(seq = NULL, evalue = 1e-05, threads = 1) {
+annotate_domains <- function(
+        seq = NULL, scheme = "all", evalue = 1e-05, threads = 1
+) {
 
+    sets <- .annotation_sets(.check_scheme(scheme))
     seq_path <- .write_seqs(seq)
     on.exit(unlink(seq_path))
 
-    annotation <- list(
-        PlantTFDB = .annotate_planttfdb(seq_path, evalue, threads),
-        TAPscan = .annotate_tapscan(seq_path, threads)
-    )
+    annotation <- lapply(sets, function(set) {
+        annot <- switch(
+            set,
+            PlantTFDB = .annotate_planttfdb(seq_path, evalue, threads),
+            TAPscan = .annotate_tapscan(seq_path, threads),
+            CISBP = .annotate_cisbp(seq_path, threads)
+        )
+        return(annot)
+    })
+    names(annotation) <- sets
     return(annotation)
 }
 
@@ -87,15 +113,10 @@ annotate_domains <- function(seq = NULL, evalue = 1e-05, threads = 1) {
 #' @noRd
 .annotate_planttfdb <- function(seq_path, evalue = 1e-05, threads = 1) {
 
-    hmms <- file.path(
-        system.file("extdata", package = "planttfhunter"),
-        c("PFAM.hmm", "self_built.hmm")
+    hits <- .run_hmmsearch(
+        seq_path, .scheme_hmm_path("PlantTFDB"), threads = threads
     )
-    hits <- lapply(hmms, function(x) {
-        hits <- .run_hmmsearch(seq_path, x, threads = threads)
-        .filter_hmmer(hits, evalue)
-    })
-    hits <- do.call(rbind, hits)
+    hits <- .filter_hmmer(hits, evalue)
 
     return(.format_hits(hits))
 }
@@ -112,11 +133,74 @@ annotate_domains <- function(seq = NULL, evalue = 1e-05, threads = 1) {
 .annotate_tapscan <- function(seq_path, threads = 1) {
 
     hits <- .run_hmmsearch(
-        seq_path, .tapscan_hmm_path(), extra_args = "--cut_ga",
+        seq_path, .scheme_hmm_path("TAPscan"), extra_args = "--cut_ga",
         threads = threads
     )
 
     return(.format_hits(hits))
+}
+
+
+#' Annotate sequences in a FASTA file with CIS-BP domains
+#'
+#' DNA-binding domains are kept if they have a per-sequence E-value
+#' < 0.01 and a per-domain conditional E-value < 0.01, as in CIS-BP.
+#' Then, overlapping hits of different domains are resolved by keeping only
+#' the most significant hit, as in CIS-BP (build 2.00 onwards).
+#'
+#' @param seq_path Path to FASTA file.
+#' @inheritParams annotate_domains
+#'
+#' @return A data frame as in the element \strong{CISBP} of the output
+#' of \code{annotate_domains()}.
+#' @noRd
+.annotate_cisbp <- function(seq_path, threads = 1) {
+
+    hits <- .run_hmmsearch(
+        seq_path, .scheme_hmm_path("CISBP"), threads = threads
+    )
+    hits <- hits[hits$full_evalue < 0.01 & hits$c_evalue < 0.01, ]
+    hits <- .resolve_overlaps(hits)
+
+    return(.format_hits(hits))
+}
+
+
+#' Resolve overlapping domain hits by keeping the most significant hits
+#'
+#' For each sequence, domain hits are processed from the most to the least
+#' significant (i.e., by increasing independent E-value), and a hit is
+#' removed if its alignment overlaps the alignment of a more significant
+#' hit of a different domain that was kept. Overlapping hits of the same
+#' domain (e.g., in proteins with domain repeats) are kept.
+#'
+#' @param hits A data frame with hmmsearch hits as returned
+#' by \code{.read_hmmsearch()}.
+#'
+#' @return The input data frame without overlapping hits, with rows in the
+#' original order.
+#' @noRd
+.resolve_overlaps <- function(hits = NULL) {
+
+    if(nrow(hits) < 2) { return(hits) }
+
+    # Row indices per sequence, from the most to the least significant hit
+    ord <- order(hits$i_evalue, -hits$dom_score, method = "radix")
+    idx <- split(ord, factor(hits$target_name[ord]))
+
+    keep <- unlist(lapply(idx, function(i) {
+        Reduce(function(kept, j) {
+            overlaps <- hits$query_name[kept] != hits$query_name[j] &
+                hits$ali_from[j] <= hits$ali_to[kept] &
+                hits$ali_to[j] >= hits$ali_from[kept]
+            if(any(overlaps)) { return(kept) }
+            return(c(kept, j))
+        }, i[-1], i[1])
+    }), use.names = FALSE)
+
+    hits <- hits[sort(keep), ]
+    rownames(hits) <- NULL
+    return(hits)
 }
 
 

@@ -1,5 +1,5 @@
 ---
-title: "Genome-wide identification and classification of transcription factors in plant genomes"
+title: "Genome-wide identification and classification of transcription factors in eukaryotic genomes"
 author: 
   - name: Fabricio Almeida-Silva
     affiliation: |
@@ -18,7 +18,7 @@ output:
 date: "`r Sys.Date()`"
 bibliography: vignette_bibliography.bib
 vignette: >
-  %\VignetteIndexEntry{Genome-wide identification and classification of transcription factors in plant genomes}
+  %\VignetteIndexEntry{Genome-wide identification and classification of transcription factors in eukaryotic genomes}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}  
 ---
@@ -31,6 +31,18 @@ knitr::opts_chunk$set(
 )
 ```
 
+```{css callouts, echo = FALSE}
+.callout {
+    margin: 1em 0;
+    padding: 0.6em 1em;
+    border-left: 5px solid #1a81c2;
+    background-color: #eef6fb;
+    border-radius: 3px;
+}
+.callout > p:first-child { margin-top: 0; }
+.callout > p:last-child { margin-bottom: 0; }
+```
+
 
 # Introduction
 
@@ -38,14 +50,20 @@ Transcription factors (TFs) are proteins that bind to cis-regulatory elements
 in promoter regions of genes and regulate their expression. 
 Identifying them in a genome is useful for a variety of reasons, such as 
 exploring their evolutionary history across clades and inferring 
-gene regulatory networks. `r BiocStyle::Githubpkg("almeidasilvaf/planttfhunter")` 
-allows users to identify plant TFs from whole-genome protein sequences and 
-classify them into families and subfamilies (when applicable) using the 
-classification schemes implemented in [PlantTFDB](http://planttfdb.gao-lab.org/)
-and [TAPscan](https://tapscan.plantcode.cup.uni-freiburg.de/), as well as
+gene regulatory networks. `r BiocStyle::Githubpkg("almeidasilvaf/tfhunter")` 
+allows users to identify TFs from whole-genome protein sequences of any 
+eukaryotic species and classify them into families using the 
+classification scheme of [CIS-BP](https://cisbp.ccbr.utoronto.ca/). For 
+plants, TFs can also be classified into families and subfamilies 
+(when applicable) using the classification schemes implemented in 
+[PlantTFDB](http://planttfdb.gao-lab.org/) and 
+[TAPscan](https://tapscan.plantcode.cup.uni-freiburg.de/), as well as
 into structure-based families, classes, and superclasses as in
-Plant-TFClass.
-As `r BiocStyle::Githubpkg("almeidasilvaf/planttfhunter")` interoperates with 
+Plant-TFClass. Likewise, animal TFs can be classified into structure-based
+superclasses, classes, and families as in TFClass.
+`r BiocStyle::Githubpkg("almeidasilvaf/tfhunter")` is the
+successor of the Bioconductor package `r BiocStyle::Biocpkg("planttfhunter")`.
+As `r BiocStyle::Githubpkg("almeidasilvaf/tfhunter")` interoperates with 
 core Bioconductor packages (i.e., `AAStringSet` objects as input, 
 `SummarizedExperiment` objects as output), it can be easily incorporated in 
 pipelines for TF identification and classification in large-scale genomic
@@ -54,7 +72,7 @@ data sets.
 
 # Installation
 
-You can install `r BiocStyle::Githubpkg("almeidasilvaf/planttfhunter")` 
+You can install `r BiocStyle::Githubpkg("almeidasilvaf/tfhunter")` 
 with the following code:
 
 ```{r "install", eval = FALSE}
@@ -62,13 +80,13 @@ if (!requireNamespace("BiocManager", quietly = TRUE)) {
     install.packages("BiocManager")
 }
 
-BiocManager::install("planttfhunter")
+BiocManager::install("tfhunter")
 ```
 
 Loading package after installation:
 
 ```{r load_package, message = FALSE}
-library(planttfhunter)
+library(tfhunter)
 ```
 
 # Data description
@@ -91,21 +109,48 @@ gsu
 
 TF identification and classification is based on the presence of 
 signature protein domains, which are identified using profile hidden Markov
-models (HMMs). Three classification schemes are available:
+models (HMMs). Five classification schemes are available, and you can list
+them with the function `list_schemes()`:
 
-1. **PlantTFDB** [@jin2016planttfdb]: TFs are classified into families and
+```{r list_schemes}
+list_schemes()
+```
+
+1. **CIS-BP** [@weirauch2014cisbp]: TFs from any eukaryotic species are 
+identified based on the presence of DNA-binding domains (DBDs), and they 
+are classified into families defined by the set of DBDs they contain. 
+Each DBD corresponds to a family (e.g., 'Homeodomain'), and TFs with more 
+than one type of DBD are assigned to a family named after all of them, 
+sorted alphabetically and separated by ',' (e.g., 'Homeodomain,POU'). 
+As in CIS-BP, DBD hits must have a per-sequence E-value < 0.01 and a 
+per-domain conditional E-value < 0.01, and overlapping hits of different
+DBDs are resolved by keeping only the most significant hit. 
+This classification rule reproduces the families of all TFs in 
+CIS-BP (build 3.10), and 
+`r BiocStyle::Githubpkg("almeidasilvaf/tfhunter")` classifies TFs into the 
+same CIS-BP families for >98% of the TFs identified by both CIS-BP 
+and `r BiocStyle::Githubpkg("almeidasilvaf/tfhunter")` in species 
+from diverse eukaryotic lineages (yeast, fruit fly, human, *Arabidopsis*,
+*Phytophthora*, and *Dictyostelium*). Note that CIS-BP's TF collection 
+also includes some manual curation steps that are not implemented here
+(e.g., removal of proteins with SANT domains but no Myb domains, and 
+manual curation of human TFs), so 
+`r BiocStyle::Githubpkg("almeidasilvaf/tfhunter")` is expected to identify 
+a few more TFs than CIS-BP.
+
+2. **PlantTFDB** [@jin2016planttfdb]: TFs are classified into families and
 subfamilies based on DNA-binding, auxiliary, and forbidden domains.
 
-2. **TAPscan v4** [@petroll2025tapscan]: transcription-associated proteins
+3. **TAPscan v4** [@petroll2025tapscan]: transcription-associated proteins
 (TAPs), which include TFs, transcriptional regulators (TRs), and putative
 TAPs (PTs), are classified in over 130 families based on rules specifying 
 domains that each family should and should not have. Domain hits are 
 identified using gathering thresholds and domain-specific coverage cutoffs. 
-`r BiocStyle::Githubpkg("almeidasilvaf/planttfhunter")` uses an R 
+`r BiocStyle::Githubpkg("almeidasilvaf/tfhunter")` uses an R 
 implementation of TAPscan's original Perl script, which reproduces the 
 results of the original implementation.
 
-3. **Plant-TFClass** [@blancmathieu2024planttfclass]: TFs are classified
+4. **Plant-TFClass** [@blancmathieu2024planttfclass]: TFs are classified
 into families, classes, and superclasses based on the 3D structure of 
 their DNA-binding domains. Plant-TFClass classifications are inferred from 
 TAPscan classifications using a correspondence table between the two
@@ -116,6 +161,20 @@ the ambiguity, and if that is not possible (e.g., because the gene was not
 classified by PlantTFDB), all possible classifications are reported, 
 separated by ';'.
 
+5. **TFClass** [@wingender2018tfclass]: TFs are classified into 
+superclasses, classes, and families based on the structure of their 
+DNA-binding domains. TFClass includes human TFs and their mammalian 
+orthologs, and TFClass classifications are inferred from CIS-BP families
+using a correspondence table between the two systems, created by 
+comparing the CIS-BP families and TFClass classifications of human TFs.
+This approach assigns human TFs to the same TFClass classes as TFClass
+itself for >99% of the TFs. However, some CIS-BP families correspond to 
+more than one TFClass family (e.g., CIS-BP's Homeodomain family includes 
+TFClass families HOX, NK, Paired-related HD, and others), so their TFClass 
+family is `NA` (this is the case for most human TFs). CIS-BP families 
+that do not occur in mammals (e.g., most plant and fungal families) are 
+not classified by TFClass, so this scheme is mostly useful for animals.
+
 In all schemes, classification levels without a more specific level are 
 filled with the name of the more general level. For example, PlantTFDB 
 family bHLH has no subfamilies, so its subfamily is also bHLH, and 
@@ -123,6 +182,20 @@ Plant-TFClass class GRAS has no families, so its family is also GRAS.
 
 The classification schemes are available as data sets in this package, and
 you can see them below (click to expand).
+
+<details>
+<summary>CIS-BP classification scheme 
+(<code>data(cisbp_scheme)</code>)</summary>
+
+Each row represents a DBD (Pfam family) and its corresponding CIS-BP 
+family.
+
+```{r scheme_cisbp, echo = FALSE}
+data(cisbp_scheme)
+knitr::kable(cisbp_scheme)
+```
+
+</details>
 
 <details>
 <summary>PlantTFDB classification scheme 
@@ -165,12 +238,30 @@ knitr::kable(planttfclass_scheme)
 
 </details>
 
+<details>
+<summary>Correspondence between CIS-BP and TFClass 
+(<code>data(tfclass_scheme)</code>)</summary>
+
+CIS-BP families with multiple types of DBDs that are not in this table
+are classified based on the TFClass classifications of each DBD's family.
+
+```{r scheme_tfclass, echo = FALSE}
+data(tfclass_scheme)
+knitr::kable(tfclass_scheme)
+```
+
+</details>
+
 # Identifying and classifying TFs
 
 To identify TFs from protein sequence data, you will use the 
 function `annotate_domains()`. This function takes as input an `AAStringSet` 
-object [^1] and returns a list of two data frames (`PlantTFDB` and 
-`TAPscan`) with the protein domains used by each classification scheme.
+object [^1] and returns a list of data frames (`PlantTFDB`, `TAPscan`, and
+`CISBP`) with the protein domains used by each classification scheme.
+By default, domains are annotated for all classification schemes, but you
+can choose specific schemes with the argument `scheme` (e.g., 
+`scheme = "CISBP"` if you are only interested in CIS-BP and TFClass 
+classifications, which are the only schemes for non-plant species).
 The HMMER program [@finn2011hmmer] is used to scan protein 
 sequences for the presence of DNA-binding protein domains, as well as
 auxiliary and forbidden domains. Pre-built HMM profiles can be found in the
@@ -181,6 +272,40 @@ threads with the argument `threads`.
 [^1]: **Tip:** If you have protein sequences in a FASTA file, you can read 
 them into an `AAStringSet` object with the function `readAAStringSet()` from 
 the `r BiocStyle::Biocpkg("Biostrings")` package.
+
+Before running `annotate_domains()`, make sure your protein sequences are
+suitable for genome-wide TF identification:
+
+::: {.callout}
+**Use only one isoform per gene.** Proteomes with all isoforms of each 
+gene will result in redundant TFs, as each isoform is treated as a 
+separate gene. We recommend using the translated sequences of the 
+longest (or canonical/primary) transcript of each gene. Note, however, 
+that some TFs could be missed if their DBDs are only present in other 
+isoforms (e.g., 15 human TFs in CIS-BP have DBDs that are only detected 
+in isoforms other than the longest).
+:::
+
+::: {.callout}
+**Use only proteins encoded by the primary genome assembly.** Some 
+proteome files (e.g., the `pep.all` files from Ensembl) also include 
+proteins encoded by alternative haplotypes and assembly patches, which are 
+copies of genes in the primary assembly. For example, the human proteome in 
+Ensembl includes >100 copies of TFs encoded in alternative haplotypes and 
+patches, which would be identified as additional TFs.
+:::
+
+::: {.callout}
+**Annotate domains in the whole proteome at once.** E-values reported by 
+HMMER depend on the number of sequences that are searched, so domain hits
+with E-values close to the thresholds may pass or fail filtering 
+depending on the size of the input data set. For consistent results, run 
+`annotate_domains()` on the whole proteome instead of on subsets of it
+(e.g., chunks of sequences or candidate TFs only). For the same reason, 
+TFs with E-values close to the thresholds may also differ between 
+`r BiocStyle::Githubpkg("almeidasilvaf/tfhunter")` and CIS-BP, which used
+different versions of Pfam profile HMMs and proteomes.
+:::
 
 This is how you can run `annotate_domains()` [^2]:
 
@@ -213,14 +338,17 @@ head(gsu_families)
 ```
 
 The output contains one row per gene, and genes that are not classified
-by one of the schemes have `NA` in the respective columns. As Plant-TFClass
-classifications are inferred from TAPscan classifications, TAPscan
-annotation is required to obtain them. As TAPscan's scheme also includes 
+by one of the schemes have `NA` in the respective columns. By default, 
+`classify_tfs()` uses all classification schemes for which domain 
+annotation is available. As Plant-TFClass classifications are inferred 
+from TAPscan and PlantTFDB classifications, TAPscan and PlantTFDB 
+annotations are required to obtain them. Likewise, TFClass classifications
+are inferred from CIS-BP classifications. As TAPscan's scheme also includes 
 other transcription-associated proteins (e.g., transcriptional regulators),
 more genes are usually classified with TAPscan.
 
-If you are interested in a single classification scheme, you can use
-the argument `scheme` to get only the classifications of that scheme.
+If you are interested in specific classification schemes, you can use
+the argument `scheme` to get only the classifications of these schemes.
 For TAPscan, the class of each family (TF, TR, or PT) is indicated in 
 the column `TAP_class`.
 
@@ -231,6 +359,10 @@ head(tapscan_families)
 
 # Number of TFs, TRs, and PTs
 table(tapscan_families$TAP_class)
+
+# Get CIS-BP and PlantTFDB classifications
+cisbp_ptfdb <- classify_tfs(gsu_annotation, scheme = c("CISBP", "PlantTFDB"))
+head(cisbp_ptfdb)
 ```
 
 TAP classes, as well as descriptions and references for each TAPscan family,
@@ -301,14 +433,16 @@ that `names(families)` match `rownames(species_metadata)`,
 otherwise `get_tf_counts()` will return an error. 
 
 Now that we have a list of TF classifications and species metadata, we
-can execute `get_tf_counts()`. By default, TFs are counted per PlantTFDB 
+can execute `get_tf_counts()`. By default, TFs are counted per CIS-BP 
 family, but you can choose other schemes with the argument `scheme`, and
 other classification levels with the argument `level`. Possible levels 
-are 'family' and 'subfamily' for PlantTFDB and TAPscan, and 'superclass',
-'class', and 'family' for Plant-TFClass. 
+are 'family' and 'subfamily' for PlantTFDB and TAPscan, 'superclass',
+'class', and 'family' for Plant-TFClass and TFClass, and 'family' for 
+CIS-BP (see column
+*Levels* in the output of `list_schemes()`). 
 
 ```{r get_tf_counts}
-# Get TF counts per PlantTFDB family in each species
+# Get TF counts per CIS-BP family in each species
 tf_counts <- get_tf_counts(families, species_metadata)
 
 # Take a look at the SummarizedExperiment object
@@ -351,7 +485,7 @@ tapscan_counts <- get_tf_counts(
 head(SummarizedExperiment::assay(tapscan_counts))
 ```
 
-Finally, here is how you can get TF counts per Plant-TFClass superclass:
+Here is how you can get TF counts per Plant-TFClass superclass:
 
 ```{r get_tf_counts_planttfclass}
 # Get TF counts per Plant-TFClass superclass
@@ -359,6 +493,24 @@ superclass_counts <- get_tf_counts(
     families, scheme = "PlantTFClass", level = "superclass"
 )
 SummarizedExperiment::assay(superclass_counts)
+```
+
+Here is how you can get TF counts per PlantTFDB family:
+
+```{r get_tf_counts_planttfdb}
+# Get TF counts per PlantTFDB family
+ptfdb_counts <- get_tf_counts(families, scheme = "PlantTFDB")
+head(SummarizedExperiment::assay(ptfdb_counts))
+```
+
+Finally, here is how you can get TF counts per TFClass class. Note that
+TFs without a classification at the chosen level (e.g., TFs without 
+a TFClass family when `level = "family"`) are not counted.
+
+```{r get_tf_counts_tfclass}
+# Get TF counts per TFClass class
+tfclass_counts <- get_tf_counts(families, scheme = "TFClass", level = "class")
+head(SummarizedExperiment::assay(tfclass_counts))
 ```
 
 Cool, huh? In real-world analyses, once you have TF counts per family in 

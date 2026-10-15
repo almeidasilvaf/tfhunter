@@ -13,8 +13,8 @@ data(gsu)
 }
 \description{
 Data obtained from PLAZA Diatoms. Only genes containing domains used for
-TF family classification (with PlantTFDB's or TAPscan's schemes) were kept
-for package size issues.
+TF family classification (with any of the schemes in
+\code{list_schemes()}) were kept for package size issues.
 }
 \examples{
 data(gsu)

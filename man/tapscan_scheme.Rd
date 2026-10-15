@@ -27,7 +27,7 @@ families without a TAP class in TAPscan (see \code{tap_class}).}
 data(tapscan_scheme)
 }
 \description{
-TAPscan v4 classification rules (v82), with one row per rule. Genes are
+TAPscan v4 classification rules, with one row per rule. Genes are
 assigned to a family (and subfamily, if any) if they have all domains
 in variable \strong{Should} and none of the domains in variable
 \strong{Should_not}. For families with more than one rule (e.g., bZIP),

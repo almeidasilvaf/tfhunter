@@ -2,13 +2,14 @@
 #' Identify TFs and classify them in families
 #'
 #' TFs are classified using the classification schemes of PlantTFDB,
-#' TAPscan, and Plant-TFClass.
+#' TAPscan, Plant-TFClass, CIS-BP, and TFClass (see \code{list_schemes()}).
 #'
 #' @param domain_annotation A list of data frames with domain annotation,
 #' as returned by \code{annotate_domains()}.
 #' @param scheme Character indicating which classification scheme(s) to
-#' return. One of 'all' (all schemes), 'PlantTFDB', 'TAPscan', or
-#' 'PlantTFClass'. Default: 'all'.
+#' return. Either 'all' (all schemes for which domain annotation is
+#' available) or one or more of 'PlantTFDB', 'TAPscan', 'PlantTFClass',
+#' 'CISBP', and 'TFClass'. Default: 'all'.
 #'
 #' @return A data frame with one row per gene and the following variables
 #' (if \strong{scheme = "all"}):
@@ -25,15 +26,19 @@
 #'   Plant-TFClass.}
 #'   \item{PlantTFClass_class}{TF class according to Plant-TFClass.}
 #'   \item{PlantTFClass_family}{TF family according to Plant-TFClass.}
+#'   \item{CISBP_family}{TF family according to CIS-BP.}
+#'   \item{TFClass_superclass}{TF superclass according to TFClass.}
+#'   \item{TFClass_class}{TF class according to TFClass.}
+#'   \item{TFClass_family}{TF family according to TFClass.}
 #' }
 #' Only genes classified by at least one scheme are included. Genes not
 #' classified by a scheme have NA in the respective variables. Genes
 #' assigned to more than one PlantTFDB family have families (and
 #' subfamilies, in the same order) separated by ';'.
 #'
-#' If \strong{scheme} is 'PlantTFDB', 'TAPscan', or 'PlantTFClass', only
-#' variable \strong{Gene} and the variables of the chosen scheme are
-#' returned, and only genes classified by that scheme are included. Note that
+#' If only some schemes are used, only variable \strong{Gene} and the
+#' variables of the chosen schemes are returned, and only genes classified
+#' by at least one of the chosen schemes are included. Note that
 #' TAPscan classifies not only TFs, but also transcriptional regulators and
 #' putative TAPs, which can be distinguished using the variable
 #' \strong{TAP_class}.
@@ -50,14 +55,30 @@
 #' cannot be resolved (e.g., the gene was not classified by PlantTFDB),
 #' all possible classifications are reported, separated by ';'.
 #'
+#' CIS-BP classifications are based on the set of DNA-binding domains
+#' (DBDs) found in each gene. TFClass is a classification of TFs into
+#' superclasses, classes, families, and subfamilies based on the structure
+#' of their DBDs, and TFClass classifications are inferred from CIS-BP
+#' families using a correspondence table between the two classification
+#' systems. As TFClass includes only TFs of human and other mammals,
+#' TFs of CIS-BP families that do not occur in mammals (e.g., most plant
+#' and fungal TF families) are not classified by TFClass, and some CIS-BP
+#' families correspond to more than one TFClass family (e.g., CIS-BP's
+#' Homeodomain), so their TFClass family is NA. CIS-BP families with
+#' multiple types of DBDs that are not in the correspondence table are
+#' classified based on each DBD's family; if these are in different TFClass
+#' classes, all possible superclasses and classes are reported,
+#' separated by ';'.
+#'
 #' In all schemes, classification levels without a more specific level
 #' are filled with the name of the more general level. For example,
 #' PlantTFDB family bHLH has no subfamilies, so its subfamily is bHLH.
 #'
 #' The classification schemes are available in the data sets
 #' \code{planttfdb_scheme} (PlantTFDB), \code{tapscan_scheme}
-#' (TAPscan), and \code{planttfclass_scheme} (correspondence between
-#' TAPscan and Plant-TFClass).
+#' (TAPscan), \code{planttfclass_scheme} (correspondence between
+#' TAPscan and Plant-TFClass), \code{cisbp_scheme} (CIS-BP), and
+#' \code{tfclass_scheme} (correspondence between CIS-BP and TFClass).
 #'
 #' @references
 #' Jin, J., Tian, F., Yang, D. C., Meng, Y. Q., Kong, L., Luo, J., &
@@ -74,6 +95,15 @@
 #' Plant-TFClass: a structural classification for plant transcription
 #' factors. Trends in Plant Science, 29(1), 40-51.
 #'
+#' Weirauch, M. T., Yang, A., Albu, M., Cote, A. G., Montenegro-Montero, A.,
+#' Drewe, P., ... & Hughes, T. R. (2014). Determination and inference of
+#' eukaryotic transcription factor sequence specificity. Cell, 158(6),
+#' 1431-1443.
+#'
+#' Wingender, E., Schoeps, T., Haubrock, M., Krull, M., & Dönitz, J. (2018).
+#' TFClass: expanding the classification of human transcription factors to
+#' their mammalian orthologs. Nucleic Acids Research, 46(D1), D343-D347.
+#'
 #' @export
 #' @rdname classify_tfs
 #' @examples
@@ -84,36 +114,67 @@
 #' # Only TAPscan classifications, with TAP classes (TF, TR, or PT)
 #' tapscan_families <- classify_tfs(gsu_annotation, scheme = "TAPscan")
 #' table(tapscan_families$TAP_class)
-classify_tfs <- function(
-        domain_annotation = NULL,
-        scheme = c("all", "PlantTFDB", "TAPscan", "PlantTFClass")
-) {
+#'
+#' # Only CIS-BP classifications
+#' cisbp_families <- classify_tfs(gsu_annotation, scheme = "CISBP")
+#' head(cisbp_families)
+#'
+#' # TFClass classifications (inferred from CIS-BP families)
+#' tfclass_families <- classify_tfs(gsu_annotation, scheme = "TFClass")
+#' head(tfclass_families)
+classify_tfs <- function(domain_annotation = NULL, scheme = "all") {
 
-    scheme <- match.arg(scheme)
     .check_domain_annotation(domain_annotation)
+    scheme <- .check_scheme(scheme, names(domain_annotation))
 
-    ptfdb <- .classify_planttfdb(domain_annotation$PlantTFDB)
-    names(ptfdb) <- c("Gene", .scheme_levels("PlantTFDB"))
-    tapscan <- .classify_tapscan(domain_annotation$TAPscan)
-    names(tapscan) <- c("Gene", .scheme_levels("TAPscan"))
-
-    families <- merge(ptfdb, tapscan, by = "Gene", all = TRUE)
+    # Classify genes with each domain annotation set, and combine results
+    sets <- .annotation_sets(scheme)
+    families <- lapply(sets, function(set) {
+        .classify_set(domain_annotation[[set]], set)
+    })
+    families <- Reduce(function(x, y) {
+        merge(x, y, by = "Gene", all = TRUE)
+    }, families)
     families <- families[order(families$Gene, method = "radix"), ]
-    families <- .add_tap_class(families)
-    families <- .classify_planttfclass(families)
-
-    # Select variables and genes of the chosen scheme(s)
-    if(scheme == "all") {
-        cols <- unlist(lapply(
-            c("PlantTFDB", "TAPscan", "PlantTFClass"), .scheme_columns
-        ))
-    } else {
-        cols <- .scheme_columns(scheme)
-        families <- families[!is.na(families[[cols[1]]]), ]
+    if("PlantTFClass" %in% scheme) {
+        families <- .classify_planttfclass(families)
     }
-    families <- families[, c("Gene", cols)]
+    if("TFClass" %in% scheme) {
+        families <- .classify_tfclass(families)
+    }
+
+    # Select variables of the chosen scheme(s) and genes classified by them
+    cols <- unlist(lapply(scheme, .scheme_columns))
+    classified <- lapply(scheme, function(s) {
+        !is.na(families[[.scheme_columns(s)[1]]])
+    })
+    families <- families[Reduce(`|`, classified), c("Gene", cols)]
     rownames(families) <- NULL
-    
+    return(families)
+}
+
+
+#' Classify genes with the scheme of a domain annotation set
+#'
+#' @param annotation A data frame with domain annotation, as in the
+#' elements of the output of \code{annotate_domains()}.
+#' @param set Character indicating the domain annotation set. One of
+#' 'PlantTFDB', 'TAPscan', or 'CISBP'.
+#'
+#' @return A data frame with variable \strong{Gene} and the variables of the
+#' classification scheme with the same name as \strong{set}, as in the
+#' output of \code{classify_tfs()}.
+#' @noRd
+.classify_set <- function(annotation, set) {
+
+    families <- switch(
+        set,
+        PlantTFDB = .classify_planttfdb(annotation),
+        TAPscan = .classify_tapscan(annotation),
+        CISBP = .classify_cisbp(annotation)
+    )
+    names(families) <- c("Gene", .scheme_levels(set))
+    if(set == "TAPscan") { families <- .add_tap_class(families) }
     return(families)
 }
 
@@ -129,65 +190,20 @@ classify_tfs <- function(
 .check_domain_annotation <- function(domain_annotation) {
 
     cols <- c("Gene", "Domain", "qlen", "c_evalue", "hmm_from", "hmm_to")
+    sets <- .annotation_sets(list_schemes()$Scheme)
     valid <- is(domain_annotation, "list") &&
-        all(c("PlantTFDB", "TAPscan") %in% names(domain_annotation)) &&
-        all(vapply(domain_annotation[c("PlantTFDB", "TAPscan")], function(x) {
+        length(domain_annotation) > 0 && !is.null(names(domain_annotation)) &&
+        all(names(domain_annotation) %in% sets) &&
+        all(vapply(domain_annotation, function(x) {
             is(x, "data.frame") && all(cols %in% names(x))
         }, logical(1)))
 
     if(!valid) {
         stop(
             "Argument to 'domain_annotation' must be a list of data ",
-            "frames named 'PlantTFDB' and 'TAPscan', as returned by ",
-            "annotate_domains()."
+            "frames named ", paste0("'", sets, "'", collapse = ", "),
+            " (or a subset of them), as returned by annotate_domains()."
         )
     }
     return(invisible(TRUE))
-}
-
-
-#' Get variables with classification levels of a classification scheme
-#'
-#' @param scheme Character indicating the classification scheme. One of
-#' 'PlantTFDB', 'TAPscan', or 'PlantTFClass'.
-#'
-#' @return A named character vector with the names of the variables in the
-#' output of \code{classify_tfs()} for each classification level, from
-#' the most general to the most specific level. Vector names are the
-#' classification levels.
-#' @noRd
-.scheme_levels <- function(scheme) {
-
-    levels <- switch(
-        scheme,
-        PlantTFDB = c(
-            family = "PlantTFDB_family", subfamily = "PlantTFDB_subfamily"
-        ),
-        TAPscan = c(
-            family = "TAPscan_family", subfamily = "TAPscan_subfamily"
-        ),
-        PlantTFClass = c(
-            superclass = "PlantTFClass_superclass",
-            class = "PlantTFClass_class", family = "PlantTFClass_family"
-        )
-    )
-    return(levels)
-}
-
-
-#' Get all variables of a classification scheme
-#'
-#' @param scheme Character indicating the classification scheme. One of
-#' 'PlantTFDB', 'TAPscan', or 'PlantTFClass'.
-#'
-#' @return A character vector with the names of the variables of the
-#' classification scheme in the output of \code{classify_tfs()}, including
-#' classification levels and additional variables (i.e., TAP class for
-#' TAPscan).
-#' @noRd
-.scheme_columns <- function(scheme) {
-
-    cols <- unname(.scheme_levels(scheme))
-    if(scheme == "TAPscan") { cols <- c(cols, "TAP_class") }
-    return(cols)
 }

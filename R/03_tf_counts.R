@@ -15,11 +15,15 @@
 #' in columns. If NULL, the colData of the `SummarizedExperiment` object
 #' will be empty.
 #' @param scheme Character indicating which classification scheme to use.
-#' One of 'PlantTFDB', 'TAPscan', or 'PlantTFClass'. Default: 'PlantTFDB'.
+#' One of 'CISBP', 'PlantTFDB', 'TAPscan', 'PlantTFClass', or 'TFClass'.
+#' Default: 'CISBP'.
 #' @param level Character indicating the classification level at which TFs
 #' will be counted. Possible levels depend on the classification scheme:
-#' 'family' or 'subfamily' for PlantTFDB and TAPscan, and 'superclass',
-#' 'class', or 'family' for Plant-TFClass. Default: 'family'.
+#' 'family' or 'subfamily' for PlantTFDB and TAPscan, 'superclass',
+#' 'class', or 'family' for Plant-TFClass and TFClass, and 'family' for
+#' CIS-BP
+#' (see variable \strong{Levels} in \code{list_schemes()}).
+#' Default: 'family'.
 #'
 #' @return A SummarizedExperiment object containing TF frequencies per
 #' family (or other level) in each species, as well as species metadata (if
@@ -27,9 +31,11 @@
 #' contains the more general classification levels of each row (if any),
 #' which can be used to aggregate counts, as well as the TAP class of each
 #' row for TAPscan. For PlantTFDB, genes assigned to more than one family
-#' are counted once for each family. For Plant-TFClass, genes with
-#' ambiguous classifications (i.e., multiple possible families separated
-#' by ';') are counted in a separate row with all possible families.
+#' are counted once for each family. For Plant-TFClass and TFClass, genes
+#' with ambiguous classifications (i.e., multiple possible classifications
+#' separated by ';') are counted in a separate row with all possible
+#' classifications. Genes with NA at the chosen level (e.g., TFs
+#' not classified into a TFClass family) are not counted.
 #'
 #' @export
 #' @rdname get_tf_counts
@@ -54,8 +60,9 @@
 #'     Origin = c("US", "Belgium", "China", "Brazil")
 #' )
 #'
-#' # Count TFs per PlantTFDB family
+#' # Count TFs per CIS-BP family (default)
 #' se <- get_tf_counts(families, species_metadata)
+#' se
 #'
 #' # Count TAPscan TFs (excluding TRs and PTs) per subfamily
 #' tapscan_tfs <- lapply(families, function(x) x[x$TAP_class %in% "TF", ])
@@ -68,9 +75,15 @@
 #' se_superclass <- get_tf_counts(
 #'     families, scheme = "PlantTFClass", level = "superclass"
 #' )
+#'
+#' # Count TFs per PlantTFDB family
+#' se_ptfdb <- get_tf_counts(families, scheme = "PlantTFDB")
+#'
+#' # Count TFs per TFClass class
+#' se_tfclass <- get_tf_counts(families, scheme = "TFClass", level = "class")
 get_tf_counts <- function(
         families, species_metadata = NULL,
-        scheme = c("PlantTFDB", "TAPscan", "PlantTFClass"),
+        scheme = c("CISBP", "PlantTFDB", "TAPscan", "PlantTFClass", "TFClass"),
         level = "family"
 ) {
 
@@ -136,7 +149,7 @@ get_tf_counts <- function(
 #' @importFrom methods is
 #' @noRd
 .check_tf_counts_input <- function(
-        families, species_metadata = NULL, scheme = "PlantTFDB"
+        families, species_metadata = NULL, scheme = "CISBP"
 ) {
 
     # Check 1: is `families` a named list of data frames?
@@ -192,7 +205,7 @@ get_tf_counts <- function(
 #' each family.
 #' @noRd
 .families_to_count <- function(
-        families, scheme = "PlantTFDB", level = "family"
+        families, scheme = "CISBP", level = "family"
 ) {
 
     levels <- .scheme_levels(scheme)

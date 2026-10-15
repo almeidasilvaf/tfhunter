@@ -1,8 +1,8 @@
 #' Protein sequences of the algae species Galdieria sulphuraria
 #'
 #' Data obtained from PLAZA Diatoms. Only genes containing domains used for
-#' TF family classification (with PlantTFDB's or TAPscan's schemes) were kept
-#' for package size issues.
+#' TF family classification (with any of the schemes in
+#' \code{list_schemes()}) were kept for package size issues.
 #'
 #' @name gsu
 #' @format An AAStringSet object as returned 
@@ -51,8 +51,8 @@
 #' The data set was created using the function \code{annotate_domains()}.
 #'
 #' @name gsu_annotation
-#' @format A list of 2 data frames (\strong{PlantTFDB} and
-#' \strong{TAPscan}) with domain annotation, as returned
+#' @format A list of 3 data frames (\strong{PlantTFDB}, \strong{TAPscan},
+#' and \strong{CISBP}) with domain annotation, as returned
 #' by \code{annotate_domains()}.
 #' @examples
 #' data(gsu_annotation)
@@ -158,3 +158,77 @@
 #' data(planttfclass_scheme)
 #' @usage data(planttfclass_scheme)
 "planttfclass_scheme"
+
+
+#' Data frame of CIS-BP's TF family classification scheme
+#'
+#' DNA-binding domains (DBDs) used by CIS-BP to identify TFs, and the
+#' TF family corresponding to each DBD. Genes with more than one type of DBD
+#' are assigned to a family whose name is the family names of all DBDs
+#' sorted alphabetically (case-insensitive) and separated by ',' (e.g.,
+#' 'Homeodomain,POU'), as in CIS-BP. DBDs and families were obtained from
+#' CIS-BP (build 3.10), and DBDs were matched to Pfam (release 38.2)
+#' accessions. Some Pfam families were renamed since they were used by
+#' CIS-BP (e.g., 'DUF260' is now 'LOB'), and the Pfam family
+#' 'FLO_LFY' was split into 'SAM_LFY' (PF01698) and 'C_LFY_FLO' (PF17538),
+#' both of which are used for family 'Leafy'. The RNA-binding domains
+#' 'RRM_1' and 'zf-CCCH' are not included, as CIS-BP classifies TFs in
+#' families 'RRM' and 'CCCH ZF' only if there is experimental evidence
+#' of DNA binding (6 TFs in CIS-BP 3.10), and never uses these domains for
+#' TFs with other DBDs.
+#'
+#' @name cisbp_scheme
+#' @format A data frame with the following variables:
+#' \describe{
+#'  \item{Family}{CIS-BP family of TFs with the DBD.}
+#'  \item{CISBP_DBD}{DBD name in CIS-BP.}
+#'  \item{Pfam}{Pfam accession of the DBD.}
+#'  \item{Pfam_name}{Pfam name of the DBD (Pfam 38.2).}
+#'  \item{Pfam_description}{Pfam description of the DBD.}
+#' }
+#' @references
+#' Weirauch, M. T., Yang, A., Albu, M., Cote, A. G., Montenegro-Montero, A.,
+#' Drewe, P., ... & Hughes, T. R. (2014). Determination and inference of
+#' eukaryotic transcription factor sequence specificity. Cell, 158(6),
+#' 1431-1443.
+#' @examples
+#' data(cisbp_scheme)
+#' @usage data(cisbp_scheme)
+"cisbp_scheme"
+
+
+#' Correspondence table between CIS-BP and TFClass
+#'
+#' Table used by \code{classify_tfs()} to infer TFClass superclasses,
+#' classes, and families from CIS-BP families. The table was created by
+#' comparing the CIS-BP families of human TFs in CIS-BP (build 3.10) with
+#' their classifications in TFClass. CIS-BP families were assigned to the
+#' TFClass class of most of their TFs, and to a TFClass family only if
+#' >= 90\% of their TFs are in the same TFClass family (otherwise, the
+#' TFClass family is NA). Some entries were manually curated, including
+#' CIS-BP families with multiple types of DNA-binding domains (e.g.,
+#' 'Homeodomain,POU'). CIS-BP families that are not in this table (e.g.,
+#' families that do not occur in mammals, or with DNA-binding domains that
+#' are not classified by TFClass) are not classified by TFClass, except
+#' for families with multiple types of DNA-binding domains (see Details in
+#' \code{?classify_tfs}).
+#'
+#' @name tfclass_scheme
+#' @format A data frame with the following variables:
+#' \describe{
+#'  \item{CISBP_family}{CIS-BP family.}
+#'  \item{TFClass_superclass}{TFClass superclass.}
+#'  \item{TFClass_class}{TFClass class.}
+#'  \item{TFClass_family}{TFClass family (NA if the CIS-BP family
+#'  corresponds to more than one TFClass family).}
+#'  \item{TFClass_ID}{TFClass identifier of the most specific
+#'  classification level (class or family).}
+#'}
+#' @references
+#' Wingender, E., Schoeps, T., Haubrock, M., Krull, M., & Dönitz, J. (2018).
+#' TFClass: expanding the classification of human transcription factors to
+#' their mammalian orthologs. Nucleic Acids Research, 46(D1), D343-D347.
+#' @examples
+#' data(tfclass_scheme)
+#' @usage data(tfclass_scheme)
+"tfclass_scheme"

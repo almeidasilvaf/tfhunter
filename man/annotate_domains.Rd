@@ -4,13 +4,18 @@
 \alias{annotate_domains}
 \title{Annotate protein sequences with domains used for TF classification}
 \usage{
-annotate_domains(seq = NULL, evalue = 1e-05, threads = 1)
+annotate_domains(seq = NULL, scheme = "all", evalue = 1e-05, threads = 1)
 }
 \arguments{
 \item{seq}{An \code{AAStringSet} object. The sequences in this object must
 represent only the translated sequences of primary (or longest) transcripts.
 To create such an object from a FASTA file,
 use \code{Biostrings::readAAStringSet()}.}
+
+\item{scheme}{Character vector indicating the classification scheme(s)
+for which domains will be annotated. One or more of the schemes in
+\code{list_schemes()}, or 'all' to annotate domains for all schemes.
+Default: 'all'.}
 
 \item{evalue}{Numeric indicating the E-value threshold for \code{hmmsearch}
 to be used for PlantTFDB domains without pre-defined domain cutoffs.
@@ -20,9 +25,11 @@ Default: 1e-05.}
 by \code{hmmsearch}. Default: 1.}
 }
 \value{
-A list of 2 data frames named \strong{PlantTFDB} and
-\strong{TAPscan}, with domain annotation for each classification scheme.
-Both data frames have one row per domain hit and the following variables:
+A list of data frames with domain annotation for each domain
+annotation set required by the chosen scheme(s) (\strong{PlantTFDB},
+\strong{TAPscan}, and/or \strong{CISBP}; see variable \strong{Annotation}
+in \code{list_schemes()}). All data frames have one row per domain hit and
+the following variables:
 \describe{
 \item{Gene}{Character, gene ID.}
 \item{Domain}{Character, domain ID or name.}
@@ -35,18 +42,30 @@ Rows are kept in the same order as in the HMMER output, as this order
 is used by the TAPscan classification algorithm.
 }
 \description{
-Protein sequences are scanned with HMMER for domains used by the
-classification schemes of \strong{PlantTFDB} and \strong{TAPscan}.
-For PlantTFDB, PFAM and self-built profile HMMs are used with the
-domain-specific score cutoffs defined by PlantTFDB (or an E-value threshold,
-for domains without cutoffs).
-For TAPscan, TAPscan v4 profile HMMs are used with their
-gathering (GA) thresholds, as in the original TAPscan implementation.
+Protein sequences are scanned with HMMER for the domains used by
+the classification schemes of choice (see \code{list_schemes()}).
+Each domain annotation set has its own profile HMMs and filtering
+criteria:
+\itemize{
+\item \strong{PlantTFDB}: PFAM and self-built profile HMMs, with the
+domain-specific score cutoffs defined by PlantTFDB (or an E-value
+threshold, for domains without cutoffs).
+\item \strong{TAPscan}: TAPscan v4 profile HMMs, with their gathering
+(GA) thresholds, as in the original TAPscan implementation.
+\item \strong{CISBP}: Pfam profile HMMs of the DNA-binding domains used
+by CIS-BP, with the thresholds used by CIS-BP (per-sequence E-value
+< 0.01 and per-domain conditional E-value < 0.01). As in CIS-BP,
+overlapping hits of different domains are resolved by keeping only
+the most significant hit (lowest independent E-value).
+}
 }
 \examples{
 data(gsu)
 seq <- gsu[1:5]
 if(hmmer_is_installed()) {
     annotate_domains(seq)
+
+    # Only domains used by CIS-BP's scheme
+    annotate_domains(seq, scheme = "CISBP")
 }
 }

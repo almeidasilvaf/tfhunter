@@ -98,32 +98,6 @@
 }
 
 
-#' Get path to the uncompressed TAPscan profile HMMs
-#'
-#' TAPscan HMMs are stored gzip-compressed in the package. This function
-#' decompresses them to a temporary file once per R session and returns the
-#' path to the uncompressed file.
-#'
-#' @return Character with the path to the uncompressed HMM file.
-#' @noRd
-.tapscan_hmm_path <- function() {
-
-    path <- .pkg_env$tapscan_hmm
-    if(is.null(path) || !file.exists(path)) {
-        gz <- system.file(
-            "extdata", "tapscan", "TAPscan_v13.hmm.gz",
-            package = "planttfhunter"
-        )
-        path <- tempfile(pattern = "TAPscan_v13", fileext = ".hmm")
-        con <- gzfile(gz, open = "rt")
-        on.exit(close(con))
-        writeLines(readLines(con), path)
-        .pkg_env$tapscan_hmm <- path
-    }
-    return(path)
-}
-
-
 #' Check if HMMER is installed
 #'
 #' @return Logical indicating whether HMMER is installed (i.e., whether

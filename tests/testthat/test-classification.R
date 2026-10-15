@@ -17,7 +17,8 @@ test_that("classify_tfs() returns a data frame with families", {
         names(families),
         c("Gene", "PlantTFDB_family", "PlantTFDB_subfamily", "TAPscan_family",
           "TAPscan_subfamily", "TAP_class", "PlantTFClass_superclass",
-          "PlantTFClass_class", "PlantTFClass_family")
+          "PlantTFClass_class", "PlantTFClass_family", "CISBP_family",
+          "TFClass_superclass", "TFClass_class", "TFClass_family")
     )
     expect_true(nrow(families) > 0)
     expect_false(any(duplicated(families$Gene)))
@@ -61,14 +62,66 @@ test_that("classify_tfs() returns classifications for a single scheme", {
     )
     expect_false(any(is.na(tfclass$PlantTFClass_superclass)))
 
+    cisbp <- classify_tfs(gsu_annotation, scheme = "CISBP")
+    expect_equal(names(cisbp), c("Gene", "CISBP_family"))
+    expect_false(any(is.na(cisbp$CISBP_family)))
+
+    tfc <- classify_tfs(gsu_annotation, scheme = "TFClass")
+    expect_equal(
+        names(tfc),
+        c("Gene", "TFClass_superclass", "TFClass_class", "TFClass_family")
+    )
+    expect_false(any(is.na(tfc$TFClass_class)))
+    expect_equal(nrow(tfc), sum(!is.na(all_fams$TFClass_superclass)))
+
     expect_error(classify_tfs(gsu_annotation, scheme = "fake"))
+})
+
+
+test_that("classify_tfs() uses multiple schemes and available annotations", {
+    all_fams <- classify_tfs(gsu_annotation)
+
+    two <- classify_tfs(gsu_annotation, scheme = c("CISBP", "PlantTFDB"))
+    expect_equal(
+        names(two),
+        c("Gene", "PlantTFDB_family", "PlantTFDB_subfamily", "CISBP_family")
+    )
+    classified <- !is.na(all_fams$PlantTFDB_family) |
+        !is.na(all_fams$CISBP_family)
+    expect_equal(two$Gene, all_fams$Gene[classified])
+
+    # 'all' uses only schemes with available domain annotation
+    cisbp_only <- classify_tfs(gsu_annotation["CISBP"])
+    expect_equal(
+        cisbp_only,
+        classify_tfs(gsu_annotation, scheme = c("CISBP", "TFClass"))
+    )
+    plant <- classify_tfs(gsu_annotation[c("PlantTFDB", "TAPscan")])
+    expect_equal(
+        names(plant),
+        setdiff(names(all_fams), c("CISBP_family", .scheme_columns("TFClass")))
+    )
+
+    # Schemes without domain annotation
+    msg <- "Missing domain annotation"
+    expect_error(
+        classify_tfs(gsu_annotation["PlantTFDB"], scheme = "CISBP"), msg
+    )
+    expect_error(
+        classify_tfs(gsu_annotation["PlantTFDB"], scheme = "PlantTFClass"),
+        msg
+    )
+    expect_error(
+        classify_tfs(gsu_annotation["PlantTFDB"], scheme = "TFClass"), msg
+    )
 })
 
 
 test_that("classify_tfs() checks input", {
     msg <- "as returned by annotate_domains"
     expect_error(classify_tfs(gsu_annotation$PlantTFDB), msg)
-    expect_error(classify_tfs(gsu_annotation["PlantTFDB"]), msg)
+    expect_error(classify_tfs(unname(gsu_annotation)), msg)
+    expect_error(classify_tfs(list(fake = gsu_annotation$CISBP)), msg)
     expect_error(classify_tfs(list(PlantTFDB = 1, TAPscan = 2)), msg)
 
     bad <- gsu_annotation
@@ -86,10 +139,8 @@ test_that(".list_domains() returns a named character vector", {
 
 
 test_that("all domains used for classification have profile HMMs", {
-    hmm_names <- unlist(lapply(c("PFAM.hmm", "self_built.hmm"), function(f) {
-        lines <- readLines(system.file("extdata", f, package = "planttfhunter"))
-        gsub("^NAME +", "", lines[startsWith(lines, "NAME")])
-    }))
+    lines <- readLines(.scheme_hmm_path("PlantTFDB"))
+    hmm_names <- gsub("^NAME +", "", lines[startsWith(lines, "NAME")])
     expect_true(all(.list_domains() %in% hmm_names))
 })
 

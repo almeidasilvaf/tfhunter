@@ -34,7 +34,17 @@ toy <- data.frame(
         "Tryptophan cluster factors", "Basic helix-loop-helix factors (bHLH)",
         "RWP-RK", NA, NA
     ),
-    PlantTFClass_family = c("MYB-related", "bHLH", "RWP-RK", NA, NA)
+    PlantTFClass_family = c("MYB-related", "bHLH", "RWP-RK", NA, NA),
+    CISBP_family = c("Myb/SANT", "bHLH", "RWP-RK", NA, "Dof,Myb/SANT"),
+    TFClass_superclass = c(
+        "Helix-turn-helix domains", "Basic domains", NA, NA,
+        "Helix-turn-helix domains"
+    ),
+    TFClass_class = c(
+        "Tryptophan cluster factors", "Basic helix-loop-helix factors (bHLH)",
+        NA, NA, "Tryptophan cluster factors"
+    ),
+    TFClass_family = c("Myb-SANT", NA, NA, NA, "Myb-SANT")
 )
 
 # Helper function to get counts as a named vector for a single species
@@ -51,6 +61,11 @@ test_that("get_tf_counts() returns a SummarizedExperiment object", {
     expect_equal(se$Origin, c("US", "Belgium", "China", "Brazil"))
     expect_true(is.integer(SummarizedExperiment::assay(se)))
     expect_null(names(dimnames(SummarizedExperiment::assay(se))))
+
+    # CIS-BP is the default scheme
+    expect_equal(
+        rownames(se), rownames(get_tf_counts(families, scheme = "CISBP"))
+    )
 
     # Without species metadata
     se2 <- get_tf_counts(families)
@@ -96,6 +111,22 @@ test_that("get_tf_counts() counts TFs at each level", {
         toy_counts(scheme = "PlantTFClass", level = "superclass"),
         c(`Basic domains` = 1, `Helix-turn-helix domains` = 2)
     )
+
+    # CIS-BP: families with multiple DBDs are counted as a single family
+    expect_equal(
+        toy_counts(scheme = "CISBP"),
+        c(bHLH = 1, `Dof,Myb/SANT` = 1, `Myb/SANT` = 1, `RWP-RK` = 1)
+    )
+
+    # TFClass: genes without a TFClass family are not counted per family
+    expect_equal(
+        toy_counts(scheme = "TFClass", level = "class"),
+        c(`Basic helix-loop-helix factors (bHLH)` = 1,
+          `Tryptophan cluster factors` = 2)
+    )
+    se <- get_tf_counts(list(sp1 = toy), scheme = "TFClass", level = "family")
+    expect_equal(rownames(se), "Myb-SANT")
+    expect_equal(as.numeric(SummarizedExperiment::assay(se)), 2)
 })
 
 
@@ -170,7 +201,11 @@ test_that(".check_level() validates levels for each scheme", {
     expect_true(.check_level("PlantTFDB", "subfamily"))
     expect_true(.check_level("TAPscan", "subfamily"))
     expect_true(.check_level("PlantTFClass", "superclass"))
+    expect_true(.check_level("CISBP", "family"))
+    expect_true(.check_level("TFClass", "superclass"))
+    expect_error(.check_level("TFClass", "subfamily"))
     expect_error(.check_level("PlantTFDB", "class"))
+    expect_error(.check_level("CISBP", "subfamily"))
     expect_error(.check_level("TAPscan", "superclass"))
     expect_error(.check_level("PlantTFClass", "subfamily"))
 })

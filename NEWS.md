@@ -1,3 +1,62 @@
+# tfhunter 0.99.0
+
+tfhunter is the successor of the Bioconductor package planttfhunter, 
+extended to identify and classify transcription factors (TFs) from all 
+eukaryotes. Changes below are relative to planttfhunter 1.13.1.
+
+NEW FEATURES
+
+* TFs from any eukaryotic species can now be classified using the 
+classification scheme of CIS-BP (Weirauch et al., 2014). As in CIS-BP, TFs
+are identified based on the presence of DNA-binding domains (DBDs; 
+per-sequence E-value < 0.01 and per-domain conditional E-value < 0.01, 
+keeping only the most significant hit among overlapping hits of different
+DBDs), and they are classified into families defined by the set of DBDs 
+they contain (e.g., 'Homeodomain,POU'). The scheme is available in the new data
+set `cisbp_scheme`.
+
+* Animal TFs can now be classified into the superclasses, classes, and 
+families of TFClass (Wingender et al., 2018), a structure-based 
+classification of human and other mammalian TFs. TFClass classifications 
+are inferred from CIS-BP families using a correspondence table between the
+two systems, available in the new data set `tfclass_scheme`.
+
+* New function `list_schemes()` to list available classification schemes,
+their taxonomic scope, classification levels, required domain annotations,
+and references.
+
+* `annotate_domains()` has a new argument `scheme` to annotate only the 
+domains required by specific classification schemes (default: 'all').
+
+* The argument `scheme` of `classify_tfs()` now accepts multiple schemes. 
+By default (`scheme = "all"`), all schemes for which domain annotation is
+available are used, so the output of `annotate_domains()` for specific 
+schemes can be passed directly to `classify_tfs()`.
+
+* `get_tf_counts()` can count TFs per CIS-BP family (`scheme = "CISBP"`)
+and per TFClass superclass, class, or family (`scheme = "TFClass"`).
+
+BREAKING CHANGES
+
+* The output of `annotate_domains()` now contains a third data frame 
+(`CISBP`), and the output of `classify_tfs()` contains new variables
+`CISBP_family`, `TFClass_superclass`, `TFClass_class`, and 
+`TFClass_family`.
+
+* The default classification scheme of `get_tf_counts()` is now CIS-BP
+(`scheme = "CISBP"`, previously 'PlantTFDB'), as it can be used for all
+eukaryotes.
+
+* The argument `scheme` was added as the second argument of
+`annotate_domains()`, before `evalue` and `threads`.
+
+* Profile HMMs are now stored in `inst/extdata` as one gzip-compressed file
+per domain annotation set (`PlantTFDB.hmm.gz`, `TAPscan.hmm.gz`, and 
+`CISBP.hmm.gz`).
+
+* Data sets `gsu` and `gsu_annotation` were updated to include genes with
+DBDs used by CIS-BP.
+
 # planttfhunter 1.13.1
 
 This release adds two new classification schemes (TAPscan and Plant-TFClass)

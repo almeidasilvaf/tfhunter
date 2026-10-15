@@ -7,13 +7,13 @@ pkg_year <- if(!is.null(meta$Date)) {
 
 bibentry(
     bibtype = "Manual",
-    key = "planttfhunter",
+    key = "tfhunter",
     header = paste0(
-        "To cite planttfhunter in publications, please cite the package ",
+        "To cite tfhunter in publications, please cite the package ",
         "and the classification scheme(s) you used:"
     ),
     title = paste0(
-        "planttfhunter: Identification and classification of plant ",
+        "tfhunter: Identification and classification of eukaryotic ",
         "transcription factors"
     ),
     author = c(
@@ -22,8 +22,7 @@ bibentry(
     ),
     year = pkg_year,
     note = paste("R package version", pkg_version),
-    doi = "10.18129/B9.bioc.planttfhunter",
-    url = "https://bioconductor.org/packages/planttfhunter"
+    url = "https://bioconductor.org/packages/tfhunter"
 )
 
 bibentry(
@@ -84,14 +83,68 @@ bibentry(
     number = "1",
     pages = "40--51",
     year = "2024",
-    doi = "10.1016/j.tplants.2023.06.023",
+    doi = "10.1016/j.tplants.2023.06.023"
+)
+
+bibentry(
+    bibtype = "Article",
+    key = "weirauch2014cisbp",
+    title = paste0(
+        "Determination and inference of eukaryotic transcription factor ",
+        "sequence specificity"
+    ),
+    author = c(
+        person(c("Matthew", "T."), "Weirauch"), person("Ally", "Yang"),
+        person("Mihai", "Albu"), person(c("Atina", "G."), "Cote"),
+        person("Alejandro", "Montenegro-Montero"), person("Philipp", "Drewe"),
+        person(c("Hamed", "S."), "Najafabadi"),
+        person(c("Samuel", "A."), "Lambert"), person("Ishminder", "Mann"),
+        person("Kate", "Cook"), person("Hong", "Zheng"),
+        person("Alejandra", "Goity"), person("Harm", "van Bakel"),
+        person("Jean-Claude", "Lozano"), person("Mary", "Galli"),
+        person(c("Mathew", "G."), "Lewsey"), person("Eryong", "Huang"),
+        person("Tuhin", "Mukherjee"), person("Xiaoting", "Chen"),
+        person(c("John", "S."), "Reece-Hoyes"),
+        person("Sridhar", "Govindarajan"), person("Gad", "Shaulsky"),
+        person(c("Albertha", "J.", "M."), "Walhout"),
+        person("Fran\u00e7ois-Yves", "Bouget"), person("Gunnar", "Ratsch"),
+        person(c("Luis", "F."), "Larrondo"), person(c("Joseph", "R."), "Ecker"),
+        person(c("Timothy", "R."), "Hughes")
+    ),
+    journal = "Cell",
+    volume = "158",
+    number = "6",
+    pages = "1431--1443",
+    year = "2014",
+    doi = "10.1016/j.cell.2014.08.009"
+)
+
+bibentry(
+    bibtype = "Article",
+    key = "wingender2018tfclass",
+    title = paste0(
+        "TFClass: expanding the classification of human transcription ",
+        "factors to their mammalian orthologs"
+    ),
+    author = c(
+        person("Edgar", "Wingender"), person("Torsten", "Schoeps"),
+        person("Martin", "Haubrock"), person("Mathias", "Krull"),
+        person("J\u00fcrgen", "D\u00f6nitz")
+    ),
+    journal = "Nucleic Acids Research",
+    volume = "46",
+    number = "D1",
+    pages = "D343--D347",
+    year = "2018",
+    doi = "10.1093/nar/gkx987",
     footer = paste0(
-        "Example of how to cite planttfhunter and the classification schemes ",
+        "Example of how to cite tfhunter and the classification schemes ",
         "(remove the schemes you did not use):\n\n",
         "  'TFs and their families were identified and classified with the ",
-        "R/Bioconductor package planttfhunter (Almeida-Silva and Van de Peer, ",
-        pkg_year, "), using the classification schemes of PlantTFDB ",
-        "(Jin et al., 2017), TAPscan (Petroll et al., 2025), and ",
-        "Plant-TFClass (Blanc-Mathieu et al., 2024).'"
+        "R/Bioconductor package tfhunter (Almeida-Silva and Van de Peer, ",
+        pkg_year, "), using the classification schemes of CIS-BP ",
+        "(Weirauch et al., 2014), PlantTFDB (Jin et al., 2017), TAPscan ",
+        "(Petroll et al., 2025), Plant-TFClass (Blanc-Mathieu et al., ",
+        "2024), and TFClass (Wingender et al., 2018).'"
     )
 )

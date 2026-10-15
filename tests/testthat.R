@@ -1,4 +1,4 @@
 library(testthat)
-library(planttfhunter)
+library(tfhunter)
 
-test_check("planttfhunter")
+test_check("tfhunter")

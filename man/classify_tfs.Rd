@@ -4,18 +4,16 @@
 \alias{classify_tfs}
 \title{Identify TFs and classify them in families}
 \usage{
-classify_tfs(
-  domain_annotation = NULL,
-  scheme = c("all", "PlantTFDB", "TAPscan", "PlantTFClass")
-)
+classify_tfs(domain_annotation = NULL, scheme = "all")
 }
 \arguments{
 \item{domain_annotation}{A list of data frames with domain annotation,
 as returned by \code{annotate_domains()}.}
 
 \item{scheme}{Character indicating which classification scheme(s) to
-return. One of 'all' (all schemes), 'PlantTFDB', 'TAPscan', or
-'PlantTFClass'. Default: 'all'.}
+return. Either 'all' (all schemes for which domain annotation is
+available) or one or more of 'PlantTFDB', 'TAPscan', 'PlantTFClass',
+'CISBP', and 'TFClass'. Default: 'all'.}
 }
 \value{
 A data frame with one row per gene and the following variables
@@ -33,22 +31,26 @@ regulator (TR), or putative TAP (PT). See \code{data(tap_class)}.}
 Plant-TFClass.}
 \item{PlantTFClass_class}{TF class according to Plant-TFClass.}
 \item{PlantTFClass_family}{TF family according to Plant-TFClass.}
+\item{CISBP_family}{TF family according to CIS-BP.}
+\item{TFClass_superclass}{TF superclass according to TFClass.}
+\item{TFClass_class}{TF class according to TFClass.}
+\item{TFClass_family}{TF family according to TFClass.}
 }
 Only genes classified by at least one scheme are included. Genes not
 classified by a scheme have NA in the respective variables. Genes
 assigned to more than one PlantTFDB family have families (and
 subfamilies, in the same order) separated by ';'.
 
-If \strong{scheme} is 'PlantTFDB', 'TAPscan', or 'PlantTFClass', only
-variable \strong{Gene} and the variables of the chosen scheme are
-returned, and only genes classified by that scheme are included. Note that
+If only some schemes are used, only variable \strong{Gene} and the
+variables of the chosen schemes are returned, and only genes classified
+by at least one of the chosen schemes are included. Note that
 TAPscan classifies not only TFs, but also transcriptional regulators and
 putative TAPs, which can be distinguished using the variable
 \strong{TAP_class}.
 }
 \description{
 TFs are classified using the classification schemes of PlantTFDB,
-TAPscan, and Plant-TFClass.
+TAPscan, Plant-TFClass, CIS-BP, and TFClass (see \code{list_schemes()}).
 }
 \details{
 PlantTFDB and TAPscan classifications are based on the domains found in
@@ -62,14 +64,30 @@ PlantTFDB subfamilies are used to resolve the ambiguity. If the ambiguity
 cannot be resolved (e.g., the gene was not classified by PlantTFDB),
 all possible classifications are reported, separated by ';'.
 
+CIS-BP classifications are based on the set of DNA-binding domains
+(DBDs) found in each gene. TFClass is a classification of TFs into
+superclasses, classes, families, and subfamilies based on the structure
+of their DBDs, and TFClass classifications are inferred from CIS-BP
+families using a correspondence table between the two classification
+systems. As TFClass includes only TFs of human and other mammals,
+TFs of CIS-BP families that do not occur in mammals (e.g., most plant
+and fungal TF families) are not classified by TFClass, and some CIS-BP
+families correspond to more than one TFClass family (e.g., CIS-BP's
+Homeodomain), so their TFClass family is NA. CIS-BP families with
+multiple types of DBDs that are not in the correspondence table are
+classified based on each DBD's family; if these are in different TFClass
+classes, all possible superclasses and classes are reported,
+separated by ';'.
+
 In all schemes, classification levels without a more specific level
 are filled with the name of the more general level. For example,
 PlantTFDB family bHLH has no subfamilies, so its subfamily is bHLH.
 
 The classification schemes are available in the data sets
 \code{planttfdb_scheme} (PlantTFDB), \code{tapscan_scheme}
-(TAPscan), and \code{planttfclass_scheme} (correspondence between
-TAPscan and Plant-TFClass).
+(TAPscan), \code{planttfclass_scheme} (correspondence between
+TAPscan and Plant-TFClass), \code{cisbp_scheme} (CIS-BP), and
+\code{tfclass_scheme} (correspondence between CIS-BP and TFClass).
 }
 \examples{
 data(gsu_annotation)
@@ -79,6 +97,14 @@ head(families)
 # Only TAPscan classifications, with TAP classes (TF, TR, or PT)
 tapscan_families <- classify_tfs(gsu_annotation, scheme = "TAPscan")
 table(tapscan_families$TAP_class)
+
+# Only CIS-BP classifications
+cisbp_families <- classify_tfs(gsu_annotation, scheme = "CISBP")
+head(cisbp_families)
+
+# TFClass classifications (inferred from CIS-BP families)
+tfclass_families <- classify_tfs(gsu_annotation, scheme = "TFClass")
+head(tfclass_families)
 }
 \references{
 Jin, J., Tian, F., Yang, D. C., Meng, Y. Q., Kong, L., Luo, J., &
@@ -94,4 +120,13 @@ evolution. The Plant Journal, 121(1), e17184.
 Blanc-Mathieu, R., Dumas, R., Turchi, L., Lucas, J., & Parcy, F. (2024).
 Plant-TFClass: a structural classification for plant transcription
 factors. Trends in Plant Science, 29(1), 40-51.
+
+Weirauch, M. T., Yang, A., Albu, M., Cote, A. G., Montenegro-Montero, A.,
+Drewe, P., ... & Hughes, T. R. (2014). Determination and inference of
+eukaryotic transcription factor sequence specificity. Cell, 158(6),
+1431-1443.
+
+Wingender, E., Schoeps, T., Haubrock, M., Krull, M., & Dönitz, J. (2018).
+TFClass: expanding the classification of human transcription factors to
+their mammalian orthologs. Nucleic Acids Research, 46(D1), D343-D347.
 }
