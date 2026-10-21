@@ -203,8 +203,8 @@
 #' classes, and families from CIS-BP families. The table was created by
 #' comparing the CIS-BP families of human TFs in CIS-BP (build 3.10) with
 #' their classifications in TFClass. CIS-BP families were assigned to the
-#' TFClass class of most of their TFs, and to a TFClass family only if
-#' >= 90\% of their TFs are in the same TFClass family (otherwise, the
+#' TFClass class of most of their TFs, and to a TFClass family only 
+#' if >= 90\% of their TFs are in the same TFClass family (otherwise, the
 #' TFClass family is NA). Some entries were manually curated, including
 #' CIS-BP families with multiple types of DNA-binding domains (e.g.,
 #' 'Homeodomain,POU'). CIS-BP families that are not in this table (e.g.,
@@ -232,3 +232,68 @@
 #' data(tfclass_scheme)
 #' @usage data(tfclass_scheme)
 "tfclass_scheme"
+
+
+#' Curated human transcription factors and their classifications
+#'
+#' Human TFs curated by Lambert et al. (2018), classified with the CIS-BP and
+#' TFClass schemes. As this list was manually curated by experts, it is
+#' more accurate than TFs identified from the human proteome with
+#' \code{annotate_domains()} and \code{classify_tfs()}, and it can be used
+#' as the set of human TFs in comparative analyses (e.g., with
+#' \code{get_tf_counts()}). CIS-BP families were obtained from CIS-BP
+#' (build 3.10), whose human TFs are the TFs in this list. TFClass
+#' classifications were obtained from TFClass for TFs in TFClass, and
+#' inferred from CIS-BP families (as in \code{classify_tfs()}) for
+#' other TFs.
+#'
+#' @name human_tfs
+#' @format A data frame with one row per TF and the following variables:
+#' \describe{
+#'  \item{Gene}{Ensembl gene ID (or UniProt entry name, for DUX1 and DUX3,
+#'  which are not in Ensembl).}
+#'  \item{Symbol}{HGNC gene symbol.}
+#'  \item{CISBP_family}{TF family according to CIS-BP. TFs without a
+#'  known DNA-binding domain are in family 'Unknown'.}
+#'  \item{TFClass_superclass}{TF superclass according to TFClass.}
+#'  \item{TFClass_class}{TF class according to TFClass.}
+#'  \item{TFClass_family}{TF family according to TFClass.}
+#'  \item{TFClass_source}{Source of TFClass classifications. One of
+#'  'TFClass' (TF classified by TFClass) or 'Inferred from CIS-BP'
+#'  (TFClass classifications inferred from the CIS-BP family). NA for TFs
+#'  without TFClass classifications.}
+#'  \item{DBD}{DNA-binding domain(s), as in Lambert et al. (2018).}
+#'  \item{TF_assessment}{Assessment of DNA-binding activity. One of
+#'  'Known motif', 'Inferred motif' (motif inferred from a closely
+#'  related TF), or 'Likely to be sequence specific TF'.}
+#'  \item{Binding_mode}{Mode of interacting with DNA. One of 'Monomer or
+#'  homomultimer', 'Obligate heteromer', or 'Low specificity DNA-binding
+#'  protein'.}
+#'  \item{Motif_status}{Availability of DNA-binding motifs. One of
+#'  'High-throughput in vitro', '100 perc ID - in vitro' (motif available
+#'  for a TF with an identical DNA-binding domain), 'In vivo/Misc source',
+#'  or 'No motif'.}
+#'}
+#' @references
+#' Lambert, S. A., Jolma, A., Campitelli, L. F., Das, P. K., Yin, Y.,
+#' Albu, M., ... & Weirauch, M. T. (2018). The human transcription factors.
+#' Cell, 172(4), 650-665.
+#'
+#' Weirauch, M. T., Yang, A., Albu, M., Cote, A. G., Montenegro-Montero, A.,
+#' Drewe, P., ... & Hughes, T. R. (2014). Determination and inference of
+#' eukaryotic transcription factor sequence specificity. Cell, 158(6),
+#' 1431-1443.
+#'
+#' Wingender, E., Schoeps, T., Haubrock, M., Krull, M., & Dönitz, J. (2018).
+#' TFClass: expanding the classification of human transcription factors to
+#' their mammalian orthologs. Nucleic Acids Research, 46(D1), D343-D347.
+#' @examples
+#' data(human_tfs)
+#' head(human_tfs)
+#'
+#' # Count human TFs per TFClass class
+#' se <- get_tf_counts(
+#'     list(Human = human_tfs), scheme = "TFClass", level = "class"
+#' )
+#' @usage data(human_tfs)
+"human_tfs"

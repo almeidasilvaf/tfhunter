@@ -26,5 +26,13 @@ Authors:
   \item Yves Van de Peer \email{yves.vandepeer@psb.vib-ugent.be} (\href{https://orcid.org/0000-0003-4327-3730}{ORCID})
 }
 
+Other contributors:
+\itemize{
+  \item Romain Blanc-Mathieu \email{romain.blancmathieu@cea.fr} (\href{https://orcid.org/0000-0002-9485-6330}{ORCID}) [contributor]
+  \item Stefan Rensing \email{stefan.rensing@cup.uni-freiburg.de} (\href{https://orcid.org/0000-0002-0225-873X}{ORCID}) [contributor]
+  \item Klaas Vandepoele \email{klaas.vandepoele@psb.ugent.be} (\href{https://orcid.org/0000-0003-4790-2725}{ORCID}) [contributor]
+  \item François Parcy \email{francois.parcy@cea.fr} (\href{https://orcid.org/0000-0003-2191-500X}{ORCID}) [contributor]
+}
+
 }
 \keyword{internal}

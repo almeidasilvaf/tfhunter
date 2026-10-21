@@ -21,6 +21,10 @@ classification of human and other mammalian TFs. TFClass classifications
 are inferred from CIS-BP families using a correspondence table between the
 two systems, available in the new data set `tfclass_scheme`.
 
+* New data set `human_tfs` with the curated human TFs of Lambert et al.
+(2018), classified with the CIS-BP and TFClass schemes, which can be used
+instead of identifying human TFs from the human proteome.
+
 * New function `list_schemes()` to list available classification schemes,
 their taxonomic scope, classification levels, required domain annotations,
 and references.

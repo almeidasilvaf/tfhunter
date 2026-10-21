@@ -410,6 +410,71 @@ names(tfclass_scheme) <- c(
 usethis::use_data(tfclass_scheme, compress = "xz", overwrite = TRUE)
 ```
 
+## human_tfs.rda
+
+Curated human TFs from Lambert et al. (2018), downloaded from the Human
+TFs database (version 1.01; <https://humantfs.ccbr.utoronto.ca/>). Only
+proteins considered TFs by the curators were kept, and only categorical
+annotations were included. CIS-BP families were obtained from CIS-BP
+(build 3.10), whose human TFs are the TFs in this list. TFClass
+classifications were obtained from TFClass for TFs in TFClass, and
+inferred from CIS-BP families (as in `classify_tfs()`) for other TFs.
+
+``` r
+# Download the curated list of human TFs (Lambert et al., 2018)
+lambert_path <- file.path(tempdir(), "DatabaseExtract_v_1.01.txt")
+download.file(
+    paste0(
+        "https://humantfs.ccbr.utoronto.ca/download/v_1.01/",
+        "DatabaseExtract_v_1.01.txt"
+    ),
+    destfile = lambert_path, mode = "wb"
+)
+lambert <- read.delim(lambert_path, check.names = FALSE, quote = "\"")
+names(lambert) <- trimws(names(lambert))
+lambert <- lambert[lambert$`Is TF?` == "Yes", ]
+
+# CIS-BP families of human TFs (CIS-BP's human TFs are the curated TFs)
+cisbp_hs <- tfinfo[tfinfo$TF_Species == "Homo_sapiens", ]
+cisbp_hs <- cisbp_hs[!duplicated(cisbp_hs$DBID), ]
+stopifnot(setequal(cisbp_hs$DBID, lambert$`Ensembl ID`))
+
+human_tfs <- data.frame(
+    Gene = lambert$`Ensembl ID`,
+    Symbol = lambert$`HGNC symbol`,
+    CISBP_family = cisbp_hs$Family_Name[
+        match(lambert$`Ensembl ID`, cisbp_hs$DBID)
+    ]
+)
+
+# TFClass classifications from TFClass 
+idx <- match(human_tfs$Gene, hs_tfs$DBID)
+label <- setNames(nodes$label, nodes$id)
+from_tfclass <- data.frame(
+    TFClass_superclass = unname(label[ancestor(hs_tfs$genus[idx], 1)]),
+    TFClass_class = unname(label[hs_tfs$class[idx]]),
+    TFClass_family = unname(label[hs_tfs$family[idx]])
+)
+inferred <- .classify_tfclass(human_tfs)[, names(from_tfclass)]
+in_tfclass <- !is.na(idx)
+human_tfs[names(from_tfclass)] <- inferred
+human_tfs[in_tfclass, names(from_tfclass)] <- from_tfclass[in_tfclass, ]
+human_tfs$TFClass_source <- ifelse(
+    in_tfclass, "TFClass",
+    ifelse(is.na(inferred$TFClass_class), NA, "Inferred from CIS-BP")
+)
+
+# Annotation from Lambert et al. (2018)
+human_tfs$DBD <- lambert$DBD
+human_tfs$TF_assessment <- lambert$`TF assessment`
+human_tfs$Binding_mode <- lambert$`Binding mode`
+human_tfs$Motif_status <- lambert$`Motif status`
+human_tfs <- human_tfs[order(human_tfs$Symbol, method = "radix"), ]
+rownames(human_tfs) <- NULL
+
+usethis::use_data(human_tfs, compress = "xz", overwrite = TRUE)
+```
+
 ## planttfclass_scheme.rda
 
 Correspondence table between TAPscan and Plant-TFClass, as used by

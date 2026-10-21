@@ -24,7 +24,15 @@ Table used by \code{classify_tfs()} to infer TFClass superclasses,
 classes, and families from CIS-BP families. The table was created by
 comparing the CIS-BP families of human TFs in CIS-BP (build 3.10) with
 their classifications in TFClass. CIS-BP families were assigned to the
-TFClass class of most of their TFs, and to a TFClass family only if= 90\\% of their TFs are in the same TFClass family (otherwise, theTFClass family is NA). Some entries were manually curated, includingCIS-BP families with multiple types of DNA-binding domains (e.g.,'Homeodomain,POU'). CIS-BP families that are not in this table (e.g.,families that do not occur in mammals, or with DNA-binding domains thatare not classified by TFClass) are not classified by TFClass, exceptfor families with multiple types of DNA-binding domains (see Details in\code{?classify_tfs}).
+TFClass class of most of their TFs, and to a TFClass family only
+if >= 90\\% of their TFs are in the same TFClass family (otherwise, the
+TFClass family is NA). Some entries were manually curated, including
+CIS-BP families with multiple types of DNA-binding domains (e.g.,
+'Homeodomain,POU'). CIS-BP families that are not in this table (e.g.,
+families that do not occur in mammals, or with DNA-binding domains that
+are not classified by TFClass) are not classified by TFClass, except
+for families with multiple types of DNA-binding domains (see Details in
+\code{?classify_tfs}).
 }
 \examples{
 data(tfclass_scheme)
