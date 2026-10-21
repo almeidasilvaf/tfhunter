@@ -18,6 +18,10 @@ bibentry(
     ),
     author = c(
         person("Fabrício", "Almeida-Silva"),
+        person("Romain", "Blanc-Mathieu"),
+        person("Stefan", "Rensing"),
+        person("Klaas", "Vandepoele"),
+        person("François", "Parcy"),
         person("Yves", "Van de Peer")
     ),
     year = pkg_year,

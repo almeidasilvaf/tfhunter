@@ -61,15 +61,16 @@ print(citation('tfhunter'), bibtex = TRUE)
 #> To cite tfhunter in publications, please cite the package and the
 #> classification scheme(s) you used:
 #> 
-#>   Almeida-Silva F, Van de Peer Y (2026). _tfhunter: Identification and
-#>   classification of eukaryotic transcription factors_. R package
-#>   version 0.99.0, <https://bioconductor.org/packages/tfhunter>.
+#>   Almeida-Silva F, Blanc-Mathieu R, Rensing S, Vandepoele K, Parcy F,
+#>   Van de Peer Y (2026). _tfhunter: Identification and classification of
+#>   eukaryotic transcription factors_. R package version 0.99.0,
+#>   <https://bioconductor.org/packages/tfhunter>.
 #> 
 #> A BibTeX entry for LaTeX users is
 #> 
 #>   @Manual{tfhunter,
 #>     title = {tfhunter: Identification and classification of eukaryotic transcription factors},
-#>     author = {Fabrício Almeida-Silva and Yves {Van de Peer}},
+#>     author = {Fabrício Almeida-Silva and Romain Blanc-Mathieu and Stefan Rensing and Klaas Vandepoele and François Parcy and Yves {Van de Peer}},
 #>     year = {2026},
 #>     note = {R package version 0.99.0},
 #>     url = {https://bioconductor.org/packages/tfhunter},

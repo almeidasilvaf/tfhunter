@@ -4,16 +4,48 @@ Version: 0.99.0
 Date: 2026-10-15
 Authors@R: 
     c(
-    person(given = "Fabrício",
-           family = "Almeida-Silva",
-           role = c("aut", "cre"),
-           email = "fabricio_almeidasilva@hotmail.com",
-           comment = c(ORCID = "0000-0002-5314-2964")),
-    person(given = "Yves",
-           family = "Van de Peer",
-           role = "aut",
-           email = "yves.vandepeer@psb.vib-ugent.be",
-           comment = c(ORCID = "0000-0003-4327-3730"))
+        person(
+            given = "Fabrício",
+            family = "Almeida-Silva",
+            role = c("aut", "cre"),
+            email = "fabricio_almeidasilva@hotmail.com",
+            comment = c(ORCID = "0000-0002-5314-2964")
+        ),
+        person(
+            given = "Romain",
+            family = "Blanc-Mathieu",
+            role = "ctb",
+            email = "romain.blancmathieu@cea.fr",
+            comment = c(ORCID = "0000-0002-9485-6330")
+        ),
+        person(
+            given = "Stefan",
+            family = "Rensing",
+            role = "ctb",
+            email = "stefan.rensing@cup.uni-freiburg.de",
+            comment = c(ORCID = "0000-0002-0225-873X")
+        ),
+        person(
+            given = "Klaas",
+            family = "Vandepoele",
+            role = "ctb",
+            email = "klaas.vandepoele@psb.ugent.be",
+            comment = c(ORCID = "0000-0003-4790-2725")
+        ),
+        person(
+            given = "François",
+            family = "Parcy",
+            role = "ctb",
+            email = "francois.parcy@cea.fr",
+            comment = c(ORCID = "0000-0003-2191-500X")
+        ),
+        person(
+            given = "Yves",
+            family = "Van de Peer",
+            role = "aut",
+            email = "yves.vandepeer@psb.vib-ugent.be",
+            comment = c(ORCID = "0000-0003-4327-3730")
+        )
     )
 Description: tfhunter is used to identify transcription factors (TFs)
     from whole-genome protein sequence data of any eukaryotic species, 
