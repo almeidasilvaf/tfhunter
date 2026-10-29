@@ -17,5 +17,5 @@ Logical indicating whether HMMER is installed (i.e., whether the program
 
 ``` r
 hmmer_is_installed()
-#> [1] FALSE
+#> [1] TRUE
 ```

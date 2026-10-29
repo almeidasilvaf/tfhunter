@@ -3582,26 +3582,26 @@ that do not have HMMER installed.&lt;/p&gt;'><sup>2</sup></a>:</p>
 <span><span class="co">#&gt; 1 gsu109490.1    Homeobox_KN   40  7.8e-24        1     40</span></span>
 <span><span class="co">#&gt; 2 gsu127100.1    Homeobox_KN   40  4.6e-19        1     40</span></span>
 <span><span class="co">#&gt; 3 gsu139710.1    Homeobox_KN   40  1.6e-13        1     33</span></span>
-<span><span class="co">#&gt; 4  gsu89160.1 Acetyltransf_1  117  4.9e-21        9    116</span></span>
+<span><span class="co">#&gt; 4  gsu89160.1 Acetyltransf_1  117  4.7e-21        9    116</span></span>
 <span><span class="co">#&gt; 5  gsu14910.1 Acetyltransf_1  117  1.4e-18       19    117</span></span>
-<span><span class="co">#&gt; 6 gsu119600.1 Acetyltransf_1  117  1.4e-18       23    117</span></span>
+<span><span class="co">#&gt; 6 gsu119600.1 Acetyltransf_1  117  1.3e-18       23    117</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $CISBP</span></span>
 <span><span class="co">#&gt;          Gene  Domain qlen c_evalue hmm_from hmm_to</span></span>
 <span><span class="co">#&gt; 1 gsu144370.1 PF00010   53  1.8e-15        2     50</span></span>
 <span><span class="co">#&gt; 2 gsu140730.1 PF00010   53  1.5e-10        1     53</span></span>
 <span><span class="co">#&gt; 3  gsu74290.1 PF00010   53  1.3e-07       10     46</span></span>
-<span><span class="co">#&gt; 4 gsu127100.1 PF00046   57  6.7e-13        7     57</span></span>
-<span><span class="co">#&gt; 5 gsu109490.1 PF00046   57  8.5e-13        3     54</span></span>
-<span><span class="co">#&gt; 6  gsu95810.1 PF00096   23  2.1e-08        1     23</span></span>
+<span><span class="co">#&gt; 4 gsu127100.1 PF00046   57  4.5e-13        7     57</span></span>
+<span><span class="co">#&gt; 5 gsu109490.1 PF00046   57  5.6e-13        3     54</span></span>
+<span><span class="co">#&gt; 6  gsu95810.1 PF00096   23  1.5e-08        1     23</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $TFClass</span></span>
 <span><span class="co">#&gt;          Gene Domain qlen c_evalue hmm_from hmm_to score method</span></span>
 <span><span class="co">#&gt; 1  gsu06730.1  1.1.1   63  1.3e-06        4     49  18.8    HMM</span></span>
 <span><span class="co">#&gt; 2  gsu06730.1  1.1.5   64  1.1e-05        2     37  16.7    HMM</span></span>
-<span><span class="co">#&gt; 3  gsu06730.1  1.1.7   64  2.3e-05        8     55  15.1    HMM</span></span>
+<span><span class="co">#&gt; 3  gsu06730.1  1.1.7   64  2.4e-05        8     55  15.1    HMM</span></span>
 <span><span class="co">#&gt; 4 gsu105330.1  1.1.5   64  7.2e-05        3     46  13.9    HMM</span></span>
-<span><span class="co">#&gt; 5 gsu105330.1  1.1.7   64  3.1e-05        1     51  16.1    HMM</span></span>
+<span><span class="co">#&gt; 5 gsu105330.1  1.1.7   64  3.2e-05        1     51  16.1    HMM</span></span>
 <span><span class="co">#&gt; 6 gsu105350.1  1.1.1   63  2.9e-05        7     44  15.5    HMM</span></span></code></pre></div>
 <p>Now that we have our TF-related domains, we can classify TFs in
 families with the function <code><a href="../reference/classify_tfs.html">classify_tfs()</a></code>.</p>
@@ -3761,10 +3761,10 @@ Plant-TFClass and TFClass, and ‘family’ for CIS-BP (see column
 <span><span class="co"># Take a look at the SummarizedExperiment object</span></span>
 <span><span class="va">tf_counts</span></span>
 <span><span class="co">#&gt; class: SummarizedExperiment </span></span>
-<span><span class="co">#&gt; dim: 20 4 </span></span>
+<span><span class="co">#&gt; dim: 21 4 </span></span>
 <span><span class="co">#&gt; metadata(0):</span></span>
 <span><span class="co">#&gt; assays(1): counts</span></span>
-<span><span class="co">#&gt; rownames(20): ARID/BRIGHT bHLH ... TCR/CxC Zinc cluster</span></span>
+<span><span class="co">#&gt; rownames(21): ARID/BRIGHT bHLH ... TEA Zinc cluster</span></span>
 <span><span class="co">#&gt; rowData names(0):</span></span>
 <span><span class="co">#&gt; colnames(4): Gsu1 Gsu2 Gsu3 Gsu4</span></span>
 <span><span class="co">#&gt; colData names(2): Division Origin</span></span>
@@ -3774,7 +3774,7 @@ Plant-TFClass and TFClass, and ‘family’ for CIS-BP (see column
 <span><span class="co">#&gt;              Gsu1 Gsu2 Gsu3 Gsu4</span></span>
 <span><span class="co">#&gt; ARID/BRIGHT     2    3    5    6</span></span>
 <span><span class="co">#&gt; bHLH            3    2    0    1</span></span>
-<span><span class="co">#&gt; bZIP           10   12    5   11</span></span>
+<span><span class="co">#&gt; bZIP           10   12    6   12</span></span>
 <span><span class="co">#&gt; C2H2 ZF         1    2    0    5</span></span>
 <span><span class="co">#&gt; CBF/NF-Y        0    0    1    1</span></span>
 <span><span class="co">#&gt; CSD             0    0    1    0</span></span>
@@ -3791,6 +3791,7 @@ Plant-TFClass and TFClass, and ‘family’ for CIS-BP (see column
 <span><span class="co">#&gt; Sox             0    0    1    1</span></span>
 <span><span class="co">#&gt; TBP             0    0    1    0</span></span>
 <span><span class="co">#&gt; TCR/CxC         1    1    1    0</span></span>
+<span><span class="co">#&gt; TEA             0    1    0    1</span></span>
 <span><span class="co">#&gt; Zinc cluster    1    2    2    1</span></span>
 <span></span>
 <span><span class="co"># Look at the species metadata: colData() function from SummarizedExperiment</span></span>
@@ -3865,7 +3866,7 @@ Plant-TFClass superclass, and per TFClass class:</p>
 <span><span class="co">#&gt;                                         Gsu1 Gsu2 Gsu3 Gsu4</span></span>
 <span><span class="co">#&gt; ARID                                       2    3    5    6</span></span>
 <span><span class="co">#&gt; Basic helix-loop-helix factors (bHLH)      3    2    0    1</span></span>
-<span><span class="co">#&gt; Basic leucine zipper factors (bZIP)       10   12    5   11</span></span>
+<span><span class="co">#&gt; Basic leucine zipper factors (bZIP)       10   12    6   12</span></span>
 <span><span class="co">#&gt; C2H2 zinc finger factors                   1    2    0    5</span></span>
 <span><span class="co">#&gt; Cold-shock domain factors                  0    0    1    0</span></span>
 <span><span class="co">#&gt; DM-type intertwined zinc finger factors    0    0    1    1</span></span></code></pre></div>

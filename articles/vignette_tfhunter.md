@@ -693,26 +693,26 @@ This is how you can run
 `#> 1 gsu109490.1    Homeobox_KN   40  7.8e-24        1     40`\
 `#> 2 gsu127100.1    Homeobox_KN   40  4.6e-19        1     40`\
 `#> 3 gsu139710.1    Homeobox_KN   40  1.6e-13        1     33`\
-`#> 4  gsu89160.1 Acetyltransf_1  117  4.9e-21        9    116`\
+`#> 4  gsu89160.1 Acetyltransf_1  117  4.7e-21        9    116`\
 `#> 5  gsu14910.1 Acetyltransf_1  117  1.4e-18       19    117`\
-`#> 6 gsu119600.1 Acetyltransf_1  117  1.4e-18       23    117`\
+`#> 6 gsu119600.1 Acetyltransf_1  117  1.3e-18       23    117`\
 `#> `\
 `#> $CISBP`\
 `#>          Gene  Domain qlen c_evalue hmm_from hmm_to`\
 `#> 1 gsu144370.1 PF00010   53  1.8e-15        2     50`\
 `#> 2 gsu140730.1 PF00010   53  1.5e-10        1     53`\
 `#> 3  gsu74290.1 PF00010   53  1.3e-07       10     46`\
-`#> 4 gsu127100.1 PF00046   57  6.7e-13        7     57`\
-`#> 5 gsu109490.1 PF00046   57  8.5e-13        3     54`\
-`#> 6  gsu95810.1 PF00096   23  2.1e-08        1     23`\
+`#> 4 gsu127100.1 PF00046   57  4.5e-13        7     57`\
+`#> 5 gsu109490.1 PF00046   57  5.6e-13        3     54`\
+`#> 6  gsu95810.1 PF00096   23  1.5e-08        1     23`\
 `#> `\
 `#> $TFClass`\
 `#>          Gene Domain qlen c_evalue hmm_from hmm_to score method`\
 `#> 1  gsu06730.1  1.1.1   63  1.3e-06        4     49  18.8    HMM`\
 `#> 2  gsu06730.1  1.1.5   64  1.1e-05        2     37  16.7    HMM`\
-`#> 3  gsu06730.1  1.1.7   64  2.3e-05        8     55  15.1    HMM`\
+`#> 3  gsu06730.1  1.1.7   64  2.4e-05        8     55  15.1    HMM`\
 `#> 4 gsu105330.1  1.1.5   64  7.2e-05        3     46  13.9    HMM`\
-`#> 5 gsu105330.1  1.1.7   64  3.1e-05        1     51  16.1    HMM`\
+`#> 5 gsu105330.1  1.1.7   64  3.2e-05        1     51  16.1    HMM`\
 `#> 6 gsu105350.1  1.1.1   63  2.9e-05        7     44  15.5    HMM`
 
 Now that we have our TF-related domains, we can classify TFs in families
@@ -881,10 +881,10 @@ in the output of [`list_schemes()`](../reference/list_schemes.md)).
 `# Take a look at the SummarizedExperiment object`\
 `tf_counts`\
 `#> class: SummarizedExperiment `\
-`#> dim: 20 4 `\
+`#> dim: 21 4 `\
 `#> metadata(0):`\
 `#> assays(1): counts`\
-`#> rownames(20): ARID/BRIGHT bHLH ... TCR/CxC Zinc cluster`\
+`#> rownames(21): ARID/BRIGHT bHLH ... TEA Zinc cluster`\
 `#> rowData names(0):`\
 `#> colnames(4): Gsu1 Gsu2 Gsu3 Gsu4`\
 `#> colData names(2): Division Origin`\
@@ -894,7 +894,7 @@ in the output of [`list_schemes()`](../reference/list_schemes.md)).
 `#>              Gsu1 Gsu2 Gsu3 Gsu4`\
 `#> ARID/BRIGHT     2    3    5    6`\
 `#> bHLH            3    2    0    1`\
-`#> bZIP           10   12    5   11`\
+`#> bZIP           10   12    6   12`\
 `#> C2H2 ZF         1    2    0    5`\
 `#> CBF/NF-Y        0    0    1    1`\
 `#> CSD             0    0    1    0`\
@@ -911,6 +911,7 @@ in the output of [`list_schemes()`](../reference/list_schemes.md)).
 `#> Sox             0    0    1    1`\
 `#> TBP             0    0    1    0`\
 `#> TCR/CxC         1    1    1    0`\
+`#> TEA             0    1    0    1`\
 `#> Zinc cluster    1    2    2    1`\
 \
 `# Look at the species metadata: colData() function from SummarizedExperiment`\
@@ -991,7 +992,7 @@ Plant-TFClass superclass, and per TFClass class:
 `#>                                         Gsu1 Gsu2 Gsu3 Gsu4`\
 `#> ARID                                       2    3    5    6`\
 `#> Basic helix-loop-helix factors (bHLH)      3    2    0    1`\
-`#> Basic leucine zipper factors (bZIP)       10   12    5   11`\
+`#> Basic leucine zipper factors (bZIP)       10   12    6   12`\
 `#> C2H2 zinc finger factors                   1    2    0    5`\
 `#> Cold-shock domain factors                  0    0    1    0`\
 `#> DM-type intertwined zinc finger factors    0    0    1    1`

@@ -119,4 +119,9 @@ if(hmmer_is_installed()) {
     # Only domains used by CIS-BP's scheme
     annotate_domains(seq, scheme = "CISBP")
 }
+#> $CISBP
+#>         Gene  Domain qlen c_evalue hmm_from hmm_to
+#> 1 gsu05000.1 PF02042   97  1.6e-27        2     96
+#> 2 gsu04730.1 PF02042   97  2.8e-27        2     96
+#> 
 ```
