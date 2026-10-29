@@ -10,6 +10,9 @@
 #' return. Either 'all' (all schemes for which domain annotation is
 #' available) or one or more of 'PlantTFDB', 'TAPscan', 'PlantTFClass',
 #' 'CISBP', and 'TFClass'. Default: 'all'.
+#' @param min_shared Numeric indicating the minimum fraction of 5-mers
+#' shared with a reference TF to assign a C2H2 ZF TF to a single TFClass
+#' family (see details). Only used for TFClass. Default: 0.1.
 #'
 #' @return A data frame with one row per gene and the following variables
 #' (if \strong{scheme = "all"}):
@@ -61,14 +64,35 @@
 #' of their DBDs, and TFClass classifications are inferred from CIS-BP
 #' families using a correspondence table between the two classification
 #' systems. As TFClass includes only TFs of human and other mammals,
+#' it should be used only for mammals (use CIS-BP for other eukaryotes).
 #' TFs of CIS-BP families that do not occur in mammals (e.g., most plant
-#' and fungal TF families) are not classified by TFClass, and some CIS-BP
-#' families correspond to more than one TFClass family (e.g., CIS-BP's
-#' Homeodomain), so their TFClass family is NA. CIS-BP families with
-#' multiple types of DBDs that are not in the correspondence table are
+#' and fungal TF families) are not classified by TFClass. CIS-BP families
+#' with multiple types of DBDs that are not in the correspondence table are
 #' classified based on each DBD's family; if these are in different TFClass
-#' classes, all possible superclasses and classes are reported,
-#' separated by ';'.
+#' classes or families, all possible superclasses, classes, and families are
+#' reported, separated by ';'.
+#'
+#' Some CIS-BP families correspond to more than one TFClass family (e.g.,
+#' CIS-BP's Homeodomain corresponds to TFClass families HOX, NK, TALE-type
+#' HD, and others). TFs in these families are assigned to a single TFClass
+#' family using reference TFs of human and mouse with known TFClass
+#' families, as follows:
+#' \itemize{
+#'   \item \strong{C2H2 ZF}: TFs are assigned to the family of the reference
+#'   C2H2 ZF TF that shares the largest fraction of the TF's amino acid
+#'   5-mers (ignoring 5-mers found in > 2% of the reference TFs), if this
+#'   fraction is >= \strong{min_shared}.
+#'   \item \strong{Other families}: TFs are scanned with profile HMMs built
+#'   from the DNA-binding domains of the reference TFs in each TFClass
+#'   family, and assigned to the family with the highest score, if this
+#'   score is >= 10 bits higher than the score of any other possible
+#'   family.
+#' }
+#' TFs that cannot be assigned to a single family (e.g., C2H2 ZF TFs that
+#' are specific to some lineages, which are not classified by TFClass) have
+#' all possible TFClass families separated by ';'. In validation tests with
+#' TFs of cow, dog, and opossum classified by TFClass, TFs assigned to a
+#' single family were assigned to the correct family in >99% of the cases.
 #'
 #' In all schemes, classification levels without a more specific level
 #' are filled with the name of the more general level. For example,
@@ -122,13 +146,20 @@
 #' # TFClass classifications (inferred from CIS-BP families)
 #' tfclass_families <- classify_tfs(gsu_annotation, scheme = "TFClass")
 #' head(tfclass_families)
-classify_tfs <- function(domain_annotation = NULL, scheme = "all") {
+classify_tfs <- function(
+        domain_annotation = NULL, scheme = "all", min_shared = 0.1
+) {
 
     .check_domain_annotation(domain_annotation)
     scheme <- .check_scheme(scheme, names(domain_annotation))
+    valid_shared <- is.numeric(min_shared) && length(min_shared) == 1 &&
+        !is.na(min_shared) && min_shared >= 0 && min_shared <= 1
+    if(!valid_shared) {
+        stop("Argument to 'min_shared' must be a number between 0 and 1.")
+    }
 
     # Classify genes with each domain annotation set, and combine results
-    sets <- .annotation_sets(scheme)
+    sets <- setdiff(.annotation_sets(scheme), "TFClass")
     families <- lapply(sets, function(set) {
         .classify_set(domain_annotation[[set]], set)
     })
@@ -140,7 +171,9 @@ classify_tfs <- function(domain_annotation = NULL, scheme = "all") {
         families <- .classify_planttfclass(families)
     }
     if("TFClass" %in% scheme) {
-        families <- .classify_tfclass(families)
+        families <- .classify_tfclass(
+            families, domain_annotation$TFClass, min_shared
+        )
     }
 
     # Select variables of the chosen scheme(s) and genes classified by them

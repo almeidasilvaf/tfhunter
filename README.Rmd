@@ -31,9 +31,9 @@ classified into families and subfamilies using the classification schemes
 implemented in [PlantTFDB](https://doi.org/10.1093/nar/gkw982) and
 [TAPscan](https://doi.org/10.1111/tpj.17184), and into
 structure-based families, classes, and superclasses as in
-[Plant-TFClass](https://doi.org/10.1016/j.tplants.2023.06.023). Animal TFs
-can be classified into structure-based superclasses, classes, and families 
-as in [TFClass](https://doi.org/10.1093/nar/gkx987).
+[Plant-TFClass](https://doi.org/10.1016/j.tplants.2023.06.023). Mammalian
+TFs can be classified into structure-based superclasses, classes, and 
+families as in [TFClass](https://doi.org/10.1093/nar/gkx987).
 
 __tfhunter__ is the successor of the Bioconductor package 
 [planttfhunter](https://bioconductor.org/packages/planttfhunter).

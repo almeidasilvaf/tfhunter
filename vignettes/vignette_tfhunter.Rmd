@@ -79,7 +79,7 @@ plants, TFs can also be classified into families and subfamilies
 [PlantTFDB](http://planttfdb.gao-lab.org/) and 
 [TAPscan](https://tapscan.plantcode.cup.uni-freiburg.de/), as well as
 into structure-based families, classes, and superclasses as in
-Plant-TFClass. Likewise, animal TFs can be classified into structure-based
+Plant-TFClass. Likewise, mammalian TFs can be classified into structure-based
 superclasses, classes, and families as in TFClass.
 `r BiocStyle::Githubpkg("almeidasilvaf/tfhunter")` is the
 successor of the Bioconductor package `r BiocStyle::Biocpkg("planttfhunter")`.
@@ -186,10 +186,20 @@ comparing the CIS-BP families and TFClass classifications of human TFs.
 This approach assigns human TFs to the same TFClass classes as TFClass
 itself for >99% of the TFs. However, some CIS-BP families correspond to 
 more than one TFClass family (e.g., CIS-BP's Homeodomain family includes 
-TFClass families HOX, NK, Paired-related HD, and others), so their TFClass 
-family is `NA` (this is the case for most human TFs). CIS-BP families 
+TFClass families HOX, NK, Paired-related HD, and others). TFs in these 
+families are assigned to a single TFClass family using human and mouse TFs
+with known TFClass families as references. C2H2 zinc finger TFs are 
+assigned to the family of the reference TF with which they share the 
+largest fraction of amino acid 5-mers, and 
+other TFs are assigned to the family whose profile HMM (built from the 
+DNA-binding domains of the reference TFs) has the highest score.
+TFs that cannot be assigned to a single family (mostly C2H2 zinc finger 
+TFs specific to some lineages, which are not classified by TFClass) have 
+all possible TFClass families separated by ';'. CIS-BP families 
 that do not occur in mammals (e.g., most plant and fungal families) are 
-not classified by TFClass, so this scheme is mostly useful for animals.
+not classified by TFClass. As TFClass is a classification of mammalian TFs,
+we recommend using it only for mammals, and using CIS-BP for other 
+eukaryotes (including other animals).
 
 In all schemes, classification levels without a more specific level are 
 filled with the name of the more general level. For example, PlantTFDB 
@@ -347,6 +357,8 @@ by one of the schemes have `NA` in the respective columns. By default,
 `classify_tfs()` uses all classification schemes for which domain 
 annotation is available. Obtaining classifications from TFClass and 
 Plant-TFClass requires also classifying with CIS-BP and TAPscan, respectively.
+For TFClass, `annotate_domains()` also returns the evidence used to assign
+TFs to a single TFClass family (element *TFClass* of the output).
 
 You can also obtain classifications from specific schemes using the
 `scheme` argument. Of note, as TAPscan's scheme also includes 

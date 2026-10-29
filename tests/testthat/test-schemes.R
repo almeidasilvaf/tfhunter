@@ -23,14 +23,18 @@ test_that(".check_scheme() validates and expands schemes", {
         .check_scheme("all", c("PlantTFDB", "TAPscan")),
         c("PlantTFDB", "TAPscan", "PlantTFClass")
     )
-    expect_equal(.check_scheme("all", "CISBP"), c("CISBP", "TFClass"))
-    expect_equal(.check_scheme("TFClass", "CISBP"), "TFClass")
+    expect_equal(.check_scheme("all", "CISBP"), "CISBP")
+    expect_equal(
+        .check_scheme("all", c("CISBP", "TFClass")), c("CISBP", "TFClass")
+    )
+    expect_equal(.check_scheme("TFClass", c("CISBP", "TFClass")), "TFClass")
 
     expect_error(.check_scheme("fake"), "must be 'all'")
     expect_error(.check_scheme(character(0)), "must be 'all'")
     expect_error(.check_scheme(1), "must be 'all'")
     expect_error(.check_scheme("CISBP", "TAPscan"), "Missing")
     expect_error(.check_scheme("TFClass", "TAPscan"), "Missing")
+    expect_error(.check_scheme("TFClass", "CISBP"), "Missing")
     expect_error(.check_scheme("all", character(0)), "No classification")
 })
 
@@ -38,7 +42,8 @@ test_that(".check_scheme() validates and expands schemes", {
 test_that(".annotation_sets() returns annotations required by schemes", {
     expect_equal(.annotation_sets("PlantTFClass"), c("PlantTFDB", "TAPscan"))
     expect_equal(.annotation_sets(c("CISBP", "TAPscan")), c("TAPscan", "CISBP"))
-    expect_equal(.annotation_sets(c("CISBP", "TFClass")), "CISBP")
+    expect_equal(.annotation_sets("CISBP"), "CISBP")
+    expect_equal(.annotation_sets("TFClass"), c("CISBP", "TFClass"))
 })
 
 
@@ -47,4 +52,9 @@ test_that(".scheme_hmm_path() decompresses HMMs once per session", {
     expect_true(file.exists(path))
     expect_equal(.scheme_hmm_path("CISBP"), path)
     expect_true(startsWith(readLines(path, n = 1), "HMMER3"))
+
+    # TFClass: one profile HMM per TFClass family (except C2H2 ZF families)
+    hmm <- readLines(.scheme_hmm_path("TFClass"))
+    hmm_names <- sub("^NAME +", "", hmm[startsWith(hmm, "NAME")])
+    expect_true(setequal(hmm_names, .tfclass_hmm_ids()))
 })

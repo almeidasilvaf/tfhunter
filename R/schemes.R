@@ -26,7 +26,7 @@ list_schemes <- function() {
             "PlantTFDB", "TAPscan", "PlantTFClass", "CISBP", "TFClass"
         ),
         Taxa = c(
-            "Plants", "Plants and algae", "Plants", "Eukaryotes", "Animals"
+            "Plants", "Plants and algae", "Plants", "Eukaryotes", "Mammals"
         ),
         Levels = c(
             "family, subfamily", "family, subfamily",
@@ -34,7 +34,8 @@ list_schemes <- function() {
             "superclass, class, family"
         ),
         Annotation = c(
-            "PlantTFDB", "TAPscan", "PlantTFDB, TAPscan", "CISBP", "CISBP"
+            "PlantTFDB", "TAPscan", "PlantTFDB, TAPscan", "CISBP",
+            "CISBP, TFClass"
         ),
         Reference = c(
             "Jin et al. (2017), doi:10.1093/nar/gkw982",
@@ -172,7 +173,7 @@ list_schemes <- function() {
 #' path to the uncompressed file.
 #'
 #' @param set Character indicating the domain annotation set. One of
-#' 'PlantTFDB', 'TAPscan', or 'CISBP'.
+#' 'PlantTFDB', 'TAPscan', 'CISBP', or 'TFClass'.
 #'
 #' @return Character with the path to the uncompressed HMM file.
 #' @noRd

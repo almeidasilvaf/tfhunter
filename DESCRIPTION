@@ -55,7 +55,7 @@ Description: tfhunter is used to identify transcription factors (TFs)
     used with DNA-binding domains to classify TFs into families and
     subfamilies (when applicable). TFs from all eukaryotes can be classified
     with CIS-BP's scheme, which defines families based on the
-    DNA-binding domains of each TF. Animal TFs can also be classified
+    DNA-binding domains of each TF. Mammalian TFs can also be classified
     into the structure-based superclasses, classes, and families of
     TFClass. Plant TFs can also be classified
     with the schemes of PlantTFDB (58 families/subfamilies) and TAPscan

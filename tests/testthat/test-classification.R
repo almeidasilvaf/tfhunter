@@ -92,8 +92,10 @@ test_that("classify_tfs() uses multiple schemes and available annotations", {
 
     # 'all' uses only schemes with available domain annotation
     cisbp_only <- classify_tfs(gsu_annotation["CISBP"])
+    expect_equal(cisbp_only, classify_tfs(gsu_annotation, scheme = "CISBP"))
+    cisbp_tfclass <- classify_tfs(gsu_annotation[c("CISBP", "TFClass")])
     expect_equal(
-        cisbp_only,
+        cisbp_tfclass,
         classify_tfs(gsu_annotation, scheme = c("CISBP", "TFClass"))
     )
     plant <- classify_tfs(gsu_annotation[c("PlantTFDB", "TAPscan")])

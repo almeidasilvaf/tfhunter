@@ -4,7 +4,7 @@
 \alias{classify_tfs}
 \title{Identify TFs and classify them in families}
 \usage{
-classify_tfs(domain_annotation = NULL, scheme = "all")
+classify_tfs(domain_annotation = NULL, scheme = "all", min_shared = 0.1)
 }
 \arguments{
 \item{domain_annotation}{A list of data frames with domain annotation,
@@ -14,6 +14,10 @@ as returned by \code{annotate_domains()}.}
 return. Either 'all' (all schemes for which domain annotation is
 available) or one or more of 'PlantTFDB', 'TAPscan', 'PlantTFClass',
 'CISBP', and 'TFClass'. Default: 'all'.}
+
+\item{min_shared}{Numeric indicating the minimum fraction of 5-mers
+shared with a reference TF to assign a C2H2 ZF TF to a single TFClass
+family (see details). Only used for TFClass. Default: 0.1.}
 }
 \value{
 A data frame with one row per gene and the following variables
@@ -70,14 +74,35 @@ superclasses, classes, families, and subfamilies based on the structure
 of their DBDs, and TFClass classifications are inferred from CIS-BP
 families using a correspondence table between the two classification
 systems. As TFClass includes only TFs of human and other mammals,
+it should be used only for mammals (use CIS-BP for other eukaryotes).
 TFs of CIS-BP families that do not occur in mammals (e.g., most plant
-and fungal TF families) are not classified by TFClass, and some CIS-BP
-families correspond to more than one TFClass family (e.g., CIS-BP's
-Homeodomain), so their TFClass family is NA. CIS-BP families with
-multiple types of DBDs that are not in the correspondence table are
+and fungal TF families) are not classified by TFClass. CIS-BP families
+with multiple types of DBDs that are not in the correspondence table are
 classified based on each DBD's family; if these are in different TFClass
-classes, all possible superclasses and classes are reported,
-separated by ';'.
+classes or families, all possible superclasses, classes, and families are
+reported, separated by ';'.
+
+Some CIS-BP families correspond to more than one TFClass family (e.g.,
+CIS-BP's Homeodomain corresponds to TFClass families HOX, NK, TALE-type
+HD, and others). TFs in these families are assigned to a single TFClass
+family using reference TFs of human and mouse with known TFClass
+families, as follows:
+\itemize{
+\item \strong{C2H2 ZF}: TFs are assigned to the family of the reference
+C2H2 ZF TF that shares the largest fraction of the TF's amino acid
+5-mers (ignoring 5-mers found in > 2\% of the reference TFs), if this
+fraction is >= \strong{min_shared}.
+\item \strong{Other families}: TFs are scanned with profile HMMs built
+from the DNA-binding domains of the reference TFs in each TFClass
+family, and assigned to the family with the highest score, if this
+score is >= 10 bits higher than the score of any other possible
+family.
+}
+TFs that cannot be assigned to a single family (e.g., C2H2 ZF TFs that
+are specific to some lineages, which are not classified by TFClass) have
+all possible TFClass families separated by ';'. In validation tests with
+TFs of cow, dog, and opossum classified by TFClass, TFs assigned to a
+single family were assigned to the correct family in >99\% of the cases.
 
 In all schemes, classification levels without a more specific level
 are filled with the name of the more general level. For example,

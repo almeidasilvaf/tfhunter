@@ -9,7 +9,7 @@ test_that("annotate_domains() returns a list of domain annotations", {
 
     annot <- annotate_domains(seq, threads = 2)
     cols <- c("Gene", "Domain", "qlen", "c_evalue", "hmm_from", "hmm_to")
-    expect_equal(names(annot), c("PlantTFDB", "TAPscan", "CISBP"))
+    expect_equal(names(annot), c("PlantTFDB", "TAPscan", "CISBP", "TFClass"))
     expect_equal(names(annot$PlantTFDB), cols)
     expect_equal(names(annot$TAPscan), cols)
     expect_equal(names(annot$CISBP), cols)
@@ -38,6 +38,12 @@ test_that("annotate_domains() annotates domains for the chosen schemes", {
 
     both <- annotate_domains(seq, scheme = c("CISBP", "TAPscan"))
     expect_equal(names(both), c("TAPscan", "CISBP"))
+
+    tfclass <- annotate_domains(seq, scheme = "TFClass")
+    expect_equal(names(tfclass), c("CISBP", "TFClass"))
+    expect_equal(
+        names(tfclass$TFClass), c(names(tfclass$CISBP), "score", "method")
+    )
 
     expect_error(annotate_domains(seq, scheme = "fake"), "scheme")
 })

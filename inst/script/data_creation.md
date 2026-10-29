@@ -33,7 +33,9 @@ usethis::use_data(
 ## gsu_annotation.rda
 
 Domains were annotated in the whole proteome of *G. sulphuraria* (object
-`gsu_full` created above).
+`gsu_full` created above). The element *TFClass* (evidence to assign TFs
+to single TFClass families) was added after creating the files
+*TFClass.hmm.gz* and *TFClass_C2H2.fa.gz* (see below).
 
 ``` r
 gsu_annotation <- annotate_domains(gsu_full)
@@ -286,12 +288,13 @@ TFClass classifications. Human TFs in CIS-BP were matched to TFClass by
 Ensembl gene ID or by gene symbol (1391 of 1639 TFs). For each CIS-BP
 family with a single type of DBD, the TFClass class was the class of
 most TFs (\>= 99% of the TFs for all families), and the TFClass family
-was the family of \>= 90% of the TFs (otherwise, NA). The following
-entries were manually curated:
+was the family of \>= 90% of the TFs (otherwise, all TFClass families of
+TFs in this class, separated by ‘;’). The following entries were
+manually curated:
 
-1.  ‘AT hook’: TFClass family NA, as CIS-BP’s AT hook TFs include
-    proteins other than HMGA (TFClass’ only family in class ‘A.T hook
-    factors’).
+1.  ‘AT hook’: TFClass family ‘A.T hook factors’ (the name of the
+    class), as CIS-BP’s AT hook TFs include proteins other than HMGA
+    (TFClass’ only family in class ‘A.T hook factors’).
 2.  ‘CUT’ and ‘POU’: CUT and POU domains only occur in homeodomain TFs,
     so TFs in which only these domains were found are assigned to the
     TFClass families ‘HD-CUT’ and ‘POU’.
@@ -356,21 +359,30 @@ ancestor <- function(id, n) {
 hs_tfs$class <- ancestor(hs_tfs$genus, 2)
 hs_tfs$family <- ancestor(hs_tfs$genus, 3)
 
-# Single-DBD CIS-BP families (in cisbp_scheme): most frequent TFClass 
+# Single-DBD CIS-BP families (in cisbp_scheme): most frequent TFClass
 # class, and TFClass family if >= 90% of the TFs are in the same family
+# (otherwise, all TFClass families of TFs in this class, separated by ';')
 hs_single <- hs_tfs[hs_tfs$Family_Name %in% cisbp_scheme$Family, ]
 map <- lapply(split(hs_single, hs_single$Family_Name), function(x) {
     cl <- sort(table(x$class), decreasing = TRUE)
+    x <- x[x$class == names(cl)[1] & x$family != x$class, ]
     fam <- sort(table(x$family), decreasing = TRUE)
+    fam_ids <- names(fam)
+    if(length(fam) > 0 && fam[[1]] / sum(fam) >= 0.9) {
+        fam_ids <- fam_ids[1]
+    }
+    fam_ids <- fam_ids[order(as.numeric_version(fam_ids))]
     data.frame(
         cisbp_family = x$Family_Name[1], class_id = names(cl)[1],
-        family_id = ifelse(fam[[1]] / nrow(x) >= 0.9, names(fam)[1], NA)
+        family_id = ifelse(
+            length(fam_ids) > 0, paste(fam_ids, collapse = ";"), NA
+        )
     )
 })
 map <- do.call(rbind, map)
 
 # Manual curation: (1) AT hook TFs in CIS-BP include proteins other than 
-# HMGA (TFClass' only A.T hook family); (2) CUT and POU domains occur
+# HMGA (TFClass' only A.T hook family), so their family is the class; (2) CUT and POU domains occur
 # only in homeodomain TFs (TFClass families HD-CUT and POU), so TFs in
 # which only CUT or POU domains were found are assigned to these families;
 # (3) TFs with multiple types of DBDs, for which TFClass classifies TFs 
@@ -383,7 +395,7 @@ manual <- data.frame(
     ),
     class_id = c("8.2", "3.1", "3.1", "3.1", "3.1", "3.1", "3.2", "1.1", "3.7"),
     family_id = c(
-        NA, "3.1.9", "3.1.10", "3.1.9", "3.1.10", "3.1.8", "3.2.1", 
+        "8.2", "3.1.9", "3.1.10", "3.1.9", "3.1.10", "3.1.8", "3.2.1", 
         "1.1.1", "3.7.1"
     )
 )
@@ -393,10 +405,14 @@ map <- rbind(map[!map$cisbp_family %in% manual$cisbp_family, ], manual)
 label <- setNames(nodes$label, nodes$id)
 map$superclass <- unname(label[ancestor(map$class_id, 1)])
 map$class <- unname(label[map$class_id])
-map$family <- unname(label[map$family_id])
+map$family <- vapply(strsplit(map$family_id, ";", fixed = TRUE), function(x) {
+    paste(label[x], collapse = ";")
+}, character(1))
+map$family[is.na(map$family_id)] <- NA
 map$tfclass_id <- ifelse(is.na(map$family_id), map$class_id, map$family_id)
 map <- map[order(
-    as.numeric_version(map$tfclass_id), map$cisbp_family, method = "radix"
+    as.numeric_version(sub(";.*", "", map$tfclass_id)), map$cisbp_family,
+    method = "radix"
 ), c("cisbp_family", "superclass", "class", "family", "tfclass_id")]
 rownames(map) <- NULL
 tfclass_map <- map
@@ -664,6 +680,161 @@ hmm[name_idx] <- paste0("NAME  ", acc)
 
 con <- gzfile("inst/extdata/CISBP.hmm.gz", open = "w", compression = 9)
 writeLines(hmm, con)
+close(con)
+```
+
+## TFClass.hmm.gz and TFClass_C2H2.fa.gz
+
+Reference TFs used to assign TFs in CIS-BP families that correspond to
+multiple TFClass families (e.g., Homeodomain) to a single TFClass
+family. Reference TFs are human and mouse TFs in TFClass (TFClass
+ontology, downloaded on 2026-10-15) whose CIS-BP family (as in
+`classify_tfs()`) has a single type of DBD and corresponds to multiple
+TFClass families, and whose TFClass family is one of these families.
+Protein sequences (longest protein of each gene) were obtained from
+Ensembl (release 116).
+
+1.  *TFClass_C2H2.fa.gz*: full sequences of the reference TFs in CIS-BP
+    family C2H2 ZF (965 TFs), named
+    ‘<TFClass family ID>\|<Ensembl gene ID>’. These are compared to C2H2
+    ZF TFs based on shared 5-mers, as profile HMMs cannot distinguish
+    C2H2 ZF families.
+2.  *TFClass.hmm.gz*: profile HMMs of the DBDs of the reference TFs in
+    each TFClass family of other CIS-BP families (51 families, 941 TFs).
+    The DBD region of each TF spans from the first to the last DBD hit,
+    and DBD sequences of each family were aligned with MAFFT v7.490
+    (`--auto`) to build profile HMMs with `hmmbuild` (HMMER 3.3.2),
+    named after the TFClass family IDs.
+
+In validation tests in which human and mouse TFs were used as references
+for TFs of cow, dog, and opossum classified by TFClass, TFs were
+assigned to the correct TFClass family in 99.5-100% of the cases (C2H2
+ZF TFs with \>= 10% of shared 5-mers, and other TFs with a profile HMM
+score \>= 10 bits higher than the score of other families).
+
+The code below must be run with `devtools::load_all()`, after the chunk
+*tfclass_scheme* above, as it uses internal functions and data from this
+package, and objects created in that chunk (`ids`, `blocks`,
+`extract()`, and `ancestor()`).
+
+``` r
+# TFClass genera of human and mouse TFs, with Ensembl gene IDs
+species <- c("Homo_sapiens", "Mus_musculus")
+ref_tfs <- do.call(rbind, lapply(species, function(s) {
+    is_sp <- startsWith(ids, paste0(s, "_"))
+    data.frame(
+        species = s,
+        symbol = toupper(extract('rdfs:label "([^"]*)"', blocks[is_sp])),
+        genus = extract(paste0(
+            ":belongs_to ;\\s*owl:someValuesFrom ",
+            "<http://sybig\\.de/tfclass#([0-9.]+)>"
+        ), blocks[is_sp]),
+        ensembl = extract("ENSEMBL_GeneID:(ENS[A-Z]*G[0-9]+)", blocks[is_sp])
+    )
+}))
+ref_tfs <- ref_tfs[!is.na(ref_tfs$genus), ]
+ref_tfs$family <- ancestor(ref_tfs$genus, 3)
+
+# Download proteomes from Ensembl (release 116), and get the longest protein 
+# of each TF (matched by Ensembl gene ID, then by gene symbol). For human,
+# only genes in the primary assembly are used.
+ens <- "https://ftp.ensembl.org/pub/release-116/fasta"
+pep_files <- c(
+    Homo_sapiens = "homo_sapiens/pep/Homo_sapiens.GRCh38.pep.all.fa.gz",
+    Mus_musculus = "mus_musculus/pep/Mus_musculus.GRCm39.pep.all.fa.gz"
+)
+ref_data <- lapply(species, function(s) {
+    pep_path <- file.path(tempdir(), basename(pep_files[s]))
+    download.file(file.path(ens, pep_files[s]), pep_path, mode = "wb")
+    pep <- Biostrings::readAAStringSet(pep_path)
+    if(s == "Homo_sapiens") {
+        pep <- pep[grepl("chromosome:GRCh38:([0-9]+|X|Y|MT):", names(pep))]
+    }
+    gene <- sub(".* gene:([^ .]+).*", "\\1", names(pep))
+    symbol <- toupper(sub(".* gene_symbol:([^ ]+).*", "\\1", names(pep)))
+    symbol[!grepl(" gene_symbol:", names(pep))] <- NA
+
+    tfs <- ref_tfs[ref_tfs$species == s, ]
+    tfs$gene <- ifelse(
+        tfs$ensembl %in% gene, tfs$ensembl, gene[match(tfs$symbol, symbol)]
+    )
+    tfs <- tfs[!is.na(tfs$gene) & !duplicated(tfs$gene), ]
+
+    keep <- gene %in% tfs$gene
+    pep <- pep[keep]
+    gene <- gene[keep]
+    ord <- order(gene, -Biostrings::width(pep))
+    pep <- pep[ord][!duplicated(gene[ord])]
+    names(pep) <- gene[ord][!duplicated(gene[ord])]
+    list(tfs = tfs, pep = pep)
+})
+ref_tfs <- do.call(rbind, lapply(ref_data, `[[`, "tfs"))
+ref_pep <- do.call(c, lapply(ref_data, `[[`, "pep"))
+
+# CIS-BP families and DBDs (as in annotate_domains() and classify_tfs())
+pep_path <- tempfile(fileext = ".fasta")
+Biostrings::writeXStringSet(ref_pep, pep_path)
+hits <- .run_hmmsearch(pep_path, .scheme_hmm_path("CISBP"), threads = 4)
+hits <- hits[hits$full_evalue < 0.01 & hits$c_evalue < 0.01, ]
+hits <- .resolve_overlaps(hits)
+cisbp <- .classify_cisbp(.format_hits(hits))
+ref_tfs$cisbp_family <- cisbp$Family[match(ref_tfs$gene, cisbp$Gene)]
+
+# Reference TFs: TFs in CIS-BP families with a single type of DBD that 
+# correspond to multiple TFClass families, whose TFClass family is one of 
+# these families
+amb <- tfclass_map[
+    grepl(";", tfclass_map$tfclass_id) & 
+        tfclass_map$cisbp_family %in% cisbp_scheme$Family, 
+]
+cand <- amb$tfclass_id[match(ref_tfs$cisbp_family, amb$cisbp_family)]
+cand <- strsplit(cand, ";")
+ref_tfs <- ref_tfs[mapply(`%in%`, ref_tfs$family, cand), ]
+c2h2 <- ref_tfs$cisbp_family == "C2H2 ZF"
+
+# C2H2 ZF TFs: full protein sequences, named '<TFClass family ID>|<gene>'
+c2h2_pep <- ref_pep[ref_tfs$gene[c2h2]]
+names(c2h2_pep) <- paste(ref_tfs$family[c2h2], ref_tfs$gene[c2h2], sep = "|")
+Biostrings::writeXStringSet(
+    c2h2_pep, "inst/extdata/TFClass_C2H2.fa.gz", compress = TRUE
+)
+
+# Other TFs: DBD region of each TF (from the first to the last DBD hit), 
+# aligned with MAFFT (v7.490) for each TFClass family, and used to build 
+# profile HMMs with hmmbuild (HMMER 3.3.2)
+hmm_tfs <- ref_tfs[!c2h2, ]
+hmm_ids <- unlist(strsplit(amb$tfclass_id[amb$cisbp_family != "C2H2 ZF"], ";"))
+stopifnot(all(hmm_ids %in% hmm_tfs$family))
+dbd_range <- do.call(rbind, lapply(split(hits, hits$target_name), function(x) {
+    data.frame(
+        gene = x$target_name[1], from = min(x$env_from), to = max(x$env_to)
+    )
+}))
+dbd_range <- dbd_range[match(hmm_tfs$gene, dbd_range$gene), ]
+dbd <- Biostrings::subseq(
+    ref_pep[hmm_tfs$gene], start = dbd_range$from, end = dbd_range$to
+)
+hmm_dir <- file.path(tempdir(), "tfclass_hmms")
+dir.create(hmm_dir)
+hmms <- lapply(sort(unique(hmm_tfs$family)), function(f) {
+    seqs <- unique(dbd[hmm_tfs$family == f])
+    names(seqs) <- paste0("seq", seq_along(seqs))
+    fasta <- file.path(hmm_dir, paste0(f, ".fasta"))
+    aln <- file.path(hmm_dir, paste0(f, ".aln"))
+    hmm <- file.path(hmm_dir, paste0(f, ".hmm"))
+    Biostrings::writeXStringSet(seqs, fasta)
+    if(length(seqs) > 1) {
+        system2("mafft", c("--auto", "--quiet", fasta), stdout = aln)
+    } else {
+        file.copy(fasta, aln)
+    }
+    system2("hmmbuild", c("-n", f, "--amino", hmm, aln), stdout = FALSE)
+    readLines(hmm)
+})
+hmms <- unlist(hmms)
+
+con <- gzfile("inst/extdata/TFClass.hmm.gz", open = "w", compression = 9)
+writeLines(hmms, con)
 close(con)
 ```
 

@@ -27,9 +27,9 @@ by \code{hmmsearch}. Default: 1.}
 \value{
 A list of data frames with domain annotation for each domain
 annotation set required by the chosen scheme(s) (\strong{PlantTFDB},
-\strong{TAPscan}, and/or \strong{CISBP}; see variable \strong{Annotation}
-in \code{list_schemes()}). All data frames have one row per domain hit and
-the following variables:
+\strong{TAPscan}, \strong{CISBP}, and/or \strong{TFClass}; see variable
+\strong{Annotation} in \code{list_schemes()}). All data frames have one
+row per domain hit and the following variables:
 \describe{
 \item{Gene}{Character, gene ID.}
 \item{Domain}{Character, domain ID or name.}
@@ -40,6 +40,18 @@ in the profile HMM.}
 }
 Rows are kept in the same order as in the HMMER output, as this order
 is used by the TAPscan classification algorithm.
+
+The data frame \strong{TFClass} has one row per gene and candidate TFClass
+family, with \strong{Domain} indicating the TFClass family ID, and two
+additional variables:
+\describe{
+\item{score}{Numeric, bit score of the profile HMM of the TFClass
+family (for the whole sequence), or fraction of the gene's 5-mers shared
+with the most similar reference C2H2 ZF TF in the TFClass family.}
+\item{method}{Character, method used to obtain the score ('HMM' or
+'k-mer'). For 'k-mer', variables \strong{qlen}, \strong{c_evalue},
+\strong{hmm_from}, and \strong{hmm_to} are NA.}
+}
 }
 \description{
 Protein sequences are scanned with HMMER for the domains used by
@@ -57,6 +69,14 @@ by CIS-BP, with the thresholds used by CIS-BP (per-sequence E-value
 < 0.01 and per-domain conditional E-value < 0.01). As in CIS-BP,
 overlapping hits of different domains are resolved by keeping only
 the most significant hit (lowest independent E-value).
+\item \strong{TFClass}: evidence used to choose among multiple
+TFClass families for TFs in CIS-BP families that correspond to more than
+one TFClass family (e.g., CIS-BP's Homeodomain). TFs in the CIS-BP family
+C2H2 ZF are compared to human and mouse C2H2 ZF TFs with known TFClass
+families based on shared amino acid 5-mers, and other TFs are scanned
+with profile HMMs of the DNA-binding domains of each TFClass family
+(built from human and mouse TFs). See \code{classify_tfs()} for
+details.
 }
 }
 \examples{
