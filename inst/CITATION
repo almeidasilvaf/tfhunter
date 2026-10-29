@@ -17,11 +17,11 @@ bibentry(
         "transcription factors"
     ),
     author = c(
-        person("Fabrício", "Almeida-Silva"),
+        person("Fabr\u00edcio", "Almeida-Silva"),
         person("Romain", "Blanc-Mathieu"),
         person("Stefan", "Rensing"),
         person("Klaas", "Vandepoele"),
-        person("François", "Parcy"),
+        person("Fran\u00e7ois", "Parcy"),
         person("Yves", "Van de Peer")
     ),
     year = pkg_year,
@@ -79,8 +79,8 @@ bibentry(
     ),
     author = c(
         person("Romain", "Blanc-Mathieu"), person("Renaud", "Dumas"),
-        person("Laura", "Turchi"), person("Jérémy", "Lucas"),
-        person("François", "Parcy")
+        person("Laura", "Turchi"), person("J\u00e9r\u00e9my", "Lucas"),
+        person("Fran\u00e7ois", "Parcy")
     ),
     journal = "Trends in Plant Science",
     volume = "29",
