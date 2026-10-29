@@ -20,6 +20,11 @@ jobs:
           cont: ghcr.io/bioconductor/bioconductor_docker:devel
           rspm: ~
     steps:
+    - name: Install HMMER
+      run: |
+        apt-get update
+        apt-get install -y --no-install-recommends hmmer
+        hmmsearch -h | head -n 2
     - uses: neurogenomics/rworkflows@master
       with:
         run_bioccheck: ${{ true }}
