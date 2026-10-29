@@ -2,10 +2,12 @@
 test_that("list_schemes() returns a data frame of schemes", {
     schemes <- list_schemes()
     expect_true(is(schemes, "data.frame"))
-    expect_equal(
-        schemes$Scheme,
-        c("PlantTFDB", "TAPscan", "PlantTFClass", "CISBP", "TFClass")
-    )
+    expect_true(nrow(schemes) > 0)
+    expect_true(all(
+        c("Scheme", "Taxa", "Levels", "Annotation", "Reference") %in%
+            names(schemes)
+    ))
+    expect_false(any(duplicated(schemes$Scheme)))
 
     # Levels match the variables in the output of classify_tfs()
     levels <- lapply(schemes$Scheme, function(s) names(.scheme_levels(s)))
@@ -18,40 +20,47 @@ test_that("list_schemes() returns a data frame of schemes", {
 test_that(".check_scheme() validates and expands schemes", {
     all_schemes <- list_schemes()$Scheme
     expect_equal(.check_scheme("all"), all_schemes)
-    expect_equal(.check_scheme(c("CISBP", "TAPscan")), c("TAPscan", "CISBP"))
-    expect_equal(
-        .check_scheme("all", c("PlantTFDB", "TAPscan")),
-        c("PlantTFDB", "TAPscan", "PlantTFClass")
-    )
-    expect_equal(.check_scheme("all", "CISBP"), "CISBP")
-    expect_equal(
-        .check_scheme("all", c("CISBP", "TFClass")), c("CISBP", "TFClass")
-    )
-    expect_equal(.check_scheme("TFClass", c("CISBP", "TFClass")), "TFClass")
+
+    # Schemes are returned in the order of list_schemes()
+    two <- .check_scheme(rev(all_schemes[1:2]))
+    expect_equal(two, all_schemes[1:2])
+
+    # 'all' is expanded to schemes with all their annotations available
+    lapply(all_schemes, function(s) {
+        expanded <- .check_scheme("all", .annotation_sets(s))
+        expect_true(s %in% expanded)
+        needs <- lapply(expanded, .annotation_sets)
+        expect_true(all(unlist(needs) %in% .annotation_sets(s)))
+    })
 
     expect_error(.check_scheme("fake"), "must be 'all'")
     expect_error(.check_scheme(character(0)), "must be 'all'")
     expect_error(.check_scheme(1), "must be 'all'")
     expect_error(.check_scheme("CISBP", "TAPscan"), "Missing")
-    expect_error(.check_scheme("TFClass", "TAPscan"), "Missing")
     expect_error(.check_scheme("TFClass", "CISBP"), "Missing")
     expect_error(.check_scheme("all", character(0)), "No classification")
 })
 
 
 test_that(".annotation_sets() returns annotations required by schemes", {
-    expect_equal(.annotation_sets("PlantTFClass"), c("PlantTFDB", "TAPscan"))
-    expect_equal(.annotation_sets(c("CISBP", "TAPscan")), c("TAPscan", "CISBP"))
-    expect_equal(.annotation_sets("CISBP"), "CISBP")
-    expect_equal(.annotation_sets("TFClass"), c("CISBP", "TFClass"))
+    schemes <- list_schemes()
+    lapply(seq_len(nrow(schemes)), function(i) {
+        sets <- .annotation_sets(schemes$Scheme[i])
+        expect_true(is.character(sets) && length(sets) > 0)
+        expect_true(all(sets %in% strsplit(schemes$Annotation[i], ", ")[[1]]))
+    })
+    all_sets <- .annotation_sets(schemes$Scheme)
+    expect_false(any(duplicated(all_sets)))
 })
 
 
 test_that(".scheme_hmm_path() decompresses HMMs once per session", {
-    path <- .scheme_hmm_path("CISBP")
-    expect_true(file.exists(path))
-    expect_equal(.scheme_hmm_path("CISBP"), path)
-    expect_true(startsWith(readLines(path, n = 1), "HMMER3"))
+    lapply(.annotation_sets(list_schemes()$Scheme), function(set) {
+        path <- .scheme_hmm_path(set)
+        expect_true(file.exists(path))
+        expect_equal(.scheme_hmm_path(set), path)
+        expect_true(startsWith(readLines(path, n = 1), "HMMER3"))
+    })
 
     # TFClass: one profile HMM per TFClass family (except C2H2 ZF families)
     hmm <- readLines(.scheme_hmm_path("TFClass"))

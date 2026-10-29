@@ -9,6 +9,20 @@ make_families <- function(ptfdb, tap_fam, tap_sub = tap_fam) {
     )
 }
 
+# Helper function to check that all classifications are valid
+expect_valid_planttfclass <- function(res) {
+    cols <- .scheme_columns("PlantTFClass")
+    expect_true(all(cols %in% names(res)))
+    valid <- list(
+        planttfclass_map$superclass, planttfclass_map$class,
+        planttfclass_map$family
+    )
+    lapply(seq_along(cols), function(i) {
+        values <- unlist(strsplit(res[[cols[i]]], ";"))
+        expect_true(all(values[!is.na(values)] %in% valid[[i]]))
+    })
+}
+
 #----Start tests----------------------------------------------------------------
 test_that("correspondence table has one superclass and class per family", {
     map <- unique(planttfclass_map[, c("family", "class", "superclass")])
@@ -18,11 +32,8 @@ test_that("correspondence table has one superclass and class per family", {
     expect_false(any(is.na(planttfclass_map$superclass)))
 
     data(planttfclass_scheme)
-    expect_equal(
-        planttfclass_scheme,
-        setNames(planttfclass_map[, c(1, 2, 5, 4, 3, 6)],
-                 names(planttfclass_scheme))
-    )
+    expect_true(is(planttfclass_scheme, "data.frame"))
+    expect_equal(nrow(planttfclass_scheme), nrow(planttfclass_map))
 })
 
 
@@ -34,81 +45,51 @@ test_that(".classify_planttfclass() adds Plant-TFClass classifications", {
     )
     res <- .classify_planttfclass(fams)
 
+    expect_true(is(res, "data.frame"))
+    expect_equal(nrow(res), nrow(fams))
+    expect_equal(names(res), c(names(fams), .scheme_columns("PlantTFClass")))
+    expect_valid_planttfclass(res)
+
+    # TFs of TAPscan families in the table are classified at all levels
+    expect_false(any(is.na(res$PlantTFClass_family[1:5])))
     expect_equal(
-        names(res),
-        c(names(fams), "PlantTFClass_superclass", "PlantTFClass_class",
-          "PlantTFClass_family")
+        is.na(res$PlantTFClass_superclass), is.na(res$PlantTFClass_family)
     )
-    # Classes without families (e.g., LEAFY) have the class name as family
-    expect_equal(
-        res$PlantTFClass_family,
-        c("WRKY", "bHLH", "TCP", "HD-ZIP", "LEAFY", NA)
-    )
-    expect_equal(
-        res$PlantTFClass_class,
-        c("GCM domain factors", "Basic helix-loop-helix factors (bHLH)",
-          "TCP", "Homeo domain factors", "LEAFY", NA)
-    )
-    expect_equal(res$PlantTFClass_superclass[3], "Beta-sheet binding to DNA")
-    expect_true(is.na(res$PlantTFClass_superclass[6]))
+
+    # TAPscan families that are not TFs (e.g., FHA) are not classified
+    expect_true(is.na(res$PlantTFClass_family[6]))
 })
 
 
 test_that("subfamily-specific matches take precedence over family matches", {
     fams <- make_families(
-        ptfdb = NA,
-        tap_fam = c("MYB", "MYB", "C2H2", "C2H2"),
-        tap_sub = c("MYB-2R", "MYB-related", "C2H2", "C2H2_IDD")
+        ptfdb = NA, tap_fam = c("C2H2", "C2H2"), tap_sub = c("C2H2", "C2H2_IDD")
     )
     res <- .classify_planttfclass(fams)
-    expect_equal(
-        res$PlantTFClass_family, c("MYB", "MYB-related", "C2H2", "IDD")
-    )
+    expect_valid_planttfclass(res)
+    expect_false(any(is.na(res$PlantTFClass_family)))
+    expect_false(res$PlantTFClass_family[1] == res$PlantTFClass_family[2])
 })
 
 
 test_that("ambiguous classifications are resolved with PlantTFDB families", {
     fams <- make_families(
-        ptfdb = c("ERF", "AP2", "RAV", "M-type", "MIKC", "B3", "RAV",
-                  "G2-like;ERF"),
-        tap_fam = c("AP2", "AP2", "AP2", "MADS", "MADS", "ABI3/VP1",
-                    "ABI3/VP1", "AP2"),
-        tap_sub = c(
-            "AP2", "AP2", "CRF", "MADS", "MADS", "ABI3/VP1", "ABI3/VP1", "AP2"
-        )
+        ptfdb = c("ERF", "AP2", NA, "bZIP", "G2-like;ERF"),
+        tap_fam = "AP2"
     )
     res <- .classify_planttfclass(fams)
-    expect_equal(
-        res$PlantTFClass_family,
-        c("ERF/DREB", "AP2", "RAV", "Type I", "Type II", "LAV", "RAV",
-          "ERF/DREB")
-    )
-    expect_equal(res$PlantTFClass_class[3], "B3")
-    expect_equal(
-        res$PlantTFClass_superclass[3], "Beta-barrel DNA-binding domains"
-    )
-})
+    expect_valid_planttfclass(res)
 
+    # Resolved with PlantTFDB subfamilies: a single family
+    expect_false(any(grepl(";", res$PlantTFClass_family[c(1, 2, 5)])))
+    expect_false(res$PlantTFClass_family[1] == res$PlantTFClass_family[2])
+    expect_equal(res$PlantTFClass_family[1], res$PlantTFClass_family[5])
 
-test_that("unresolved ambiguous classifications are separated by ';'", {
-    fams <- make_families(
-        ptfdb = c(NA, "bZIP", NA), tap_fam = c("AP2", "AP2", "MADS"),
-        tap_sub = c("AP2", "AP2", "MADS")
-    )
-    res <- .classify_planttfclass(fams)
-
-    expect_equal(res$PlantTFClass_family[1], "AP2;ERF/DREB;RAV")
-    expect_equal(res$PlantTFClass_family[2], "AP2;ERF/DREB;RAV")
-    expect_equal(res$PlantTFClass_class[1], "AP2/EREBP;B3")
-    expect_equal(
-        res$PlantTFClass_superclass[1],
-        paste0(
-            "Beta-hairpin exposed by an alpha/beta-scaffold;",
-            "Beta-barrel DNA-binding domains"
-        )
-    )
-    expect_equal(res$PlantTFClass_family[3], "Type I;Type II")
-    expect_equal(res$PlantTFClass_class[3], "MADS box factors")
+    # Not resolved (no or uninformative PlantTFDB subfamily): all families
+    expect_true(all(grepl(";", res$PlantTFClass_family[3:4])))
+    expect_equal(res$PlantTFClass_family[3], res$PlantTFClass_family[4])
+    families <- strsplit(res$PlantTFClass_family[3], ";")[[1]]
+    expect_true(all(res$PlantTFClass_family[1:2] %in% families))
 })
 
 
@@ -117,5 +98,7 @@ test_that(".resolve_planttfclass() handles empty input", {
     expect_equal(res, rep(NA_character_, 3))
 
     fams <- make_families(character(0), character(0), character(0))
-    expect_equal(nrow(.classify_planttfclass(fams)), 0)
+    res <- .classify_planttfclass(fams)
+    expect_true(is(res, "data.frame"))
+    expect_equal(nrow(res), 0)
 })

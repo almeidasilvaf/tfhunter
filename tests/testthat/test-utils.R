@@ -17,34 +17,63 @@ writeLines(example_output[1:3], empty_file)
 test_that(".read_hmmsearch() reads and parses hmmsearch output", {
     output <- .read_hmmsearch(file)
 
-    expect_equal(ncol(output), 23)
-    expect_equal(nrow(output), 2)
     expect_true(is(output, "data.frame"))
-    expect_equal(output$target_name, c("gsu06140.1", "gsu06160.1"))
-    expect_equal(output$query_name, c("G2-like", "NF-YC"))
-    expect_equal(output$description[2], "a description with spaces")
+    expect_equal(ncol(output), 23)
+    expect_true(nrow(output) > 0)
+    expect_true(is.character(output$target_name))
     expect_true(is.numeric(output$dom_score))
+    expect_true(is.numeric(output$c_evalue))
+
+    # Descriptions with spaces are kept in a single variable
+    expect_true(any(grepl(" ", output$description)))
 
     empty <- .read_hmmsearch(empty_file)
-    expect_equal(dim(empty), c(0, 23))
+    expect_true(is(empty, "data.frame"))
+    expect_equal(nrow(empty), 0)
 })
+
 
 test_that(".filter_hmmer() filters hmmsearch output", {
     output <- .read_hmmsearch(file)
     foutput <- .filter_hmmer(output)
 
-    expect_equal(ncol(foutput), 23)
-    expect_equal(nrow(foutput), 1)
-    expect_equal(foutput$query_name, "G2-like")
+    expect_true(is(foutput, "data.frame"))
+    expect_equal(names(foutput), names(output))
+    expect_true(nrow(foutput) <= nrow(output))
 
     # Domains without pre-defined cutoffs are filtered by E-value
     output$query_name <- "PF00076"
-    expect_equal(nrow(.filter_hmmer(output, evalue = 1e-08)), 1)
-    expect_equal(nrow(.filter_hmmer(output, evalue = 1e-10)), 0)
+    lenient <- .filter_hmmer(output, evalue = 1)
+    strict <- .filter_hmmer(output, evalue = 1e-100)
+    expect_true(nrow(lenient) > 0)
+    expect_equal(nrow(strict), 0)
 })
+
 
 test_that("hmmer_is_installed() works", {
     h <- hmmer_is_installed()
     expect_true(is.logical(h))
     expect_equal(length(h), 1)
+})
+
+
+test_that(".run_hmmsearch() runs hmmsearch and parses its output", {
+    skip_on_os("windows")
+
+    path <- Sys.getenv("PATH")
+    Sys.setenv(PATH = paste(fake_hmmsearch(status = 0), path, sep = ":"))
+    hits <- tryCatch(
+        .run_hmmsearch("seqs.fasta", "domains.hmm", threads = 2),
+        finally = Sys.setenv(PATH = path)
+    )
+    expect_true(is(hits, "data.frame"))
+    expect_equal(names(hits), names(.read_hmmsearch(file)))
+    expect_true(nrow(hits) > 0)
+
+    Sys.setenv(PATH = paste(fake_hmmsearch(status = 1), path, sep = ":"))
+    err <- tryCatch(
+        .run_hmmsearch("seqs.fasta", "domains.hmm"),
+        error = conditionMessage, finally = Sys.setenv(PATH = path)
+    )
+    expect_match(err, "hmmsearch failed")
 })

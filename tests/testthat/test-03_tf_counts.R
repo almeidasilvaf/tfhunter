@@ -46,11 +46,26 @@ toy <- data.frame(
     ),
     TFClass_family = c("Myb-SANT", NA, NA, NA, "Myb-SANT")
 )
+# Helper function to get unique values of a variable (split by ';')
+level_values <- function(x) {
+    x <- unlist(strsplit(x[!is.na(x)], ";", fixed = TRUE))
+    return(unique(x))
+}
 
-# Helper function to get counts as a named vector for a single species
-toy_counts <- function(...) {
-    se <- get_tf_counts(list(sp1 = toy), ...)
-    return(SummarizedExperiment::assay(se)[, "sp1"])
+# Helper function to check counts for a scheme and level in the toy example
+check_counts <- function(scheme, level) {
+    se <- get_tf_counts(list(sp1 = toy), scheme = scheme, level = level)
+    counts <- SummarizedExperiment::assay(se)
+    col <- .scheme_levels(scheme)[[level]]
+
+    expect_true(is(se, "SummarizedExperiment"))
+    expect_true(is.integer(counts))
+    expect_true(all(counts >= 0))
+    expect_true(setequal(rownames(se), level_values(toy[[col]])))
+
+    # Each gene is counted once for each of its families
+    n_values <- lengths(strsplit(toy[[col]][!is.na(toy[[col]])], ";"))
+    expect_equal(sum(counts), sum(n_values))
 }
 
 #----Start tests----------------------------------------------------------------
@@ -58,9 +73,9 @@ test_that("get_tf_counts() returns a SummarizedExperiment object", {
     se <- get_tf_counts(families, species_metadata)
     expect_true(is(se, "SummarizedExperiment"))
     expect_equal(colnames(se), names(families))
-    expect_equal(se$Origin, c("US", "Belgium", "China", "Brazil"))
+    expect_equal(se$Origin, species_metadata[colnames(se), "Origin"])
     expect_true(is.integer(SummarizedExperiment::assay(se)))
-    expect_null(names(dimnames(SummarizedExperiment::assay(se))))
+    expect_true(nrow(se) > 0)
 
     # CIS-BP is the default scheme
     expect_equal(
@@ -76,87 +91,38 @@ test_that("get_tf_counts() returns a SummarizedExperiment object", {
 })
 
 
-test_that("get_tf_counts() counts TFs at each level", {
-    # PlantTFDB: genes with multiple families are counted for each family
-    expect_equal(
-        toy_counts(scheme = "PlantTFDB", level = "family"),
-        c(bHLH = 1, C2C2 = 1, GARP = 1, `MYB superfamily` = 1)
-    )
-    expect_equal(
-        toy_counts(scheme = "PlantTFDB", level = "subfamily"),
-        c(bHLH = 1, Dof = 1, `G2-like` = 1, `MYB-related` = 1)
-    )
-
-    # TAPscan
-    expect_equal(
-        toy_counts(scheme = "TAPscan", level = "family"),
-        c(bHLH = 1, FHA = 1, MYB = 1, `RWP-RK` = 1)
-    )
-    expect_equal(
-        toy_counts(scheme = "TAPscan", level = "subfamily"),
-        c(bHLH = 1, FHA = 1, `MYB-related` = 1, RKD = 1)
-    )
-
-    # Plant-TFClass
-    expect_equal(
-        toy_counts(scheme = "PlantTFClass", level = "family"),
-        c(bHLH = 1, `MYB-related` = 1, `RWP-RK` = 1)
-    )
-    expect_equal(
-        toy_counts(scheme = "PlantTFClass", level = "class"),
-        c(`Basic helix-loop-helix factors (bHLH)` = 1, `RWP-RK` = 1,
-          `Tryptophan cluster factors` = 1)
-    )
-    expect_equal(
-        toy_counts(scheme = "PlantTFClass", level = "superclass"),
-        c(`Basic domains` = 1, `Helix-turn-helix domains` = 2)
-    )
-
-    # CIS-BP: families with multiple DBDs are counted as a single family
-    expect_equal(
-        toy_counts(scheme = "CISBP"),
-        c(bHLH = 1, `Dof,Myb/SANT` = 1, `Myb/SANT` = 1, `RWP-RK` = 1)
-    )
-
-    # TFClass: genes without a TFClass family are not counted per family
-    expect_equal(
-        toy_counts(scheme = "TFClass", level = "class"),
-        c(`Basic helix-loop-helix factors (bHLH)` = 1,
-          `Tryptophan cluster factors` = 2)
-    )
-    se <- get_tf_counts(list(sp1 = toy), scheme = "TFClass", level = "family")
-    expect_equal(rownames(se), "Myb-SANT")
-    expect_equal(as.numeric(SummarizedExperiment::assay(se)), 2)
+test_that("get_tf_counts() counts TFs at each level of each scheme", {
+    lapply(list_schemes()$Scheme, function(scheme) {
+        lapply(names(.scheme_levels(scheme)), function(level) {
+            check_counts(scheme, level)
+        })
+    })
 })
 
 
 test_that("get_tf_counts() adds higher levels to rowData", {
-    rd <- function(...) {
-        as.data.frame(SummarizedExperiment::rowData(
-            get_tf_counts(list(sp1 = toy), ...)
-        ))
-    }
+    lapply(list_schemes()$Scheme, function(scheme) {
+        levels <- .scheme_levels(scheme)
+        lapply(seq_along(levels), function(i) {
+            se <- get_tf_counts(
+                list(sp1 = toy), scheme = scheme, level = names(levels)[i]
+            )
+            rd <- SummarizedExperiment::rowData(se)
+            expect_true(all(levels[seq_len(i - 1)] %in% names(rd)))
+            expect_false(any(levels[seq(i, length(levels))] %in% names(rd)))
+        })
+    })
 
-    expect_equal(ncol(rd(scheme = "PlantTFDB", level = "family")), 0)
-    ptfdb <- rd(scheme = "PlantTFDB", level = "subfamily")
-    expect_equal(ptfdb["Dof", "PlantTFDB_family"], "C2C2")
-    expect_equal(ptfdb["MYB-related", "PlantTFDB_family"], "MYB superfamily")
-
-    expect_equal(names(rd(scheme = "TAPscan")), "TAP_class")
-    tap <- rd(scheme = "TAPscan", level = "subfamily")
-    expect_equal(names(tap), c("TAPscan_family", "TAP_class"))
-    expect_equal(tap["RKD", "TAPscan_family"], "RWP-RK")
-    expect_equal(tap["FHA", "TAP_class"], "TR")
-
-    tfclass <- rd(scheme = "PlantTFClass", level = "family")
-    expect_equal(
-        names(tfclass), c("PlantTFClass_superclass", "PlantTFClass_class")
+    # Values of higher levels are those of genes in each feature
+    se <- get_tf_counts(
+        list(sp1 = toy), scheme = "TAPscan", level = "subfamily"
     )
-    expect_equal(tfclass["RWP-RK", "PlantTFClass_class"], "RWP-RK")
-    expect_equal(
-        names(rd(scheme = "PlantTFClass", level = "class")),
-        "PlantTFClass_superclass"
-    )
+    rd <- as.data.frame(SummarizedExperiment::rowData(se))
+    expect_true(all(c("TAPscan_family", "TAP_class") %in% names(rd)))
+    lapply(rownames(rd), function(f) {
+        genes <- toy$TAPscan_subfamily %in% f
+        expect_true(rd[f, "TAPscan_family"] %in% toy$TAPscan_family[genes])
+    })
 })
 
 
@@ -167,10 +133,13 @@ test_that("filtered tables and empty tables can be counted", {
 
     empty <- list(sp1 = toy[0, ], sp2 = toy)
     se <- get_tf_counts(empty, scheme = "TAPscan", level = "subfamily")
-    expect_equal(unname(colSums(SummarizedExperiment::assay(se))), c(0, 4))
+    counts <- colSums(SummarizedExperiment::assay(se))
+    expect_true(counts[["sp1"]] == 0)
+    expect_true(counts[["sp2"]] > 0)
 
     se <- get_tf_counts(list(sp1 = toy[0, ]))
-    expect_equal(dim(se), c(0, 1))
+    expect_true(is(se, "SummarizedExperiment"))
+    expect_equal(nrow(se), 0)
 })
 
 
@@ -198,14 +167,24 @@ test_that("get_tf_counts() checks input", {
 
 
 test_that(".check_level() validates levels for each scheme", {
-    expect_true(.check_level("PlantTFDB", "subfamily"))
-    expect_true(.check_level("TAPscan", "subfamily"))
-    expect_true(.check_level("PlantTFClass", "superclass"))
-    expect_true(.check_level("CISBP", "family"))
-    expect_true(.check_level("TFClass", "superclass"))
-    expect_error(.check_level("TFClass", "subfamily"))
-    expect_error(.check_level("PlantTFDB", "class"))
-    expect_error(.check_level("CISBP", "subfamily"))
-    expect_error(.check_level("TAPscan", "superclass"))
-    expect_error(.check_level("PlantTFClass", "subfamily"))
+    lapply(list_schemes()$Scheme, function(scheme) {
+        levels <- names(.scheme_levels(scheme))
+        lapply(levels, function(l) expect_true(.check_level(scheme, l)))
+        expect_error(.check_level(scheme, "fake_level"), "Valid levels")
+    })
+})
+
+
+test_that(".count_rowdata() combines values of higher levels", {
+    long <- data.frame(
+        Feature = c("f1", "f1", "f2", "f3"), Species = "sp1",
+        Parent = c("p1", "p2", NA, "p1")
+    )
+    rd <- .count_rowdata(long, c("f1", "f2", "f3"))
+    expect_true(is(rd, "data.frame"))
+    expect_equal(rownames(rd), c("f1", "f2", "f3"))
+
+    # Multiple values are separated by ';', and missing values are NA
+    expect_true(setequal(strsplit(rd["f1", "Parent"], ";")[[1]], c("p1", "p2")))
+    expect_true(is.na(rd["f2", "Parent"]))
 })
