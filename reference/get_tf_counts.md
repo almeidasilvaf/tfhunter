@@ -59,7 +59,7 @@ counted once for each family. For Plant-TFClass and TFClass, genes with
 ambiguous classifications (i.e., multiple possible classifications
 separated by ';') are counted in a separate row with all possible
 classifications. Genes with NA at the chosen level (e.g., TFs not
-classified into a TFClass family) are not counted.
+classified by TFClass) are not counted.
 
 ## Examples
 

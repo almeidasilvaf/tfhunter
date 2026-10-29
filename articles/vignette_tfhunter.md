@@ -16,7 +16,7 @@ classification schemes implemented in
 [PlantTFDB](http://planttfdb.gao-lab.org/) and
 [TAPscan](https://tapscan.plantcode.cup.uni-freiburg.de/), as well as
 into structure-based families, classes, and superclasses as in
-Plant-TFClass. Likewise, animal TFs can be classified into
+Plant-TFClass. Likewise, mammalian TFs can be classified into
 structure-based superclasses, classes, and families as in TFClass.
 *[tfhunter](https://github.com/almeidasilvaf/tfhunter)* is the successor
 of the Bioconductor package
@@ -74,8 +74,8 @@ the protein sequences in an `AAStringSet` object.
 
 TF identification and classification is based on the presence of
 signature protein domains, which are identified using profile hidden
-Markov models (HMMs). Five classification schemes are available, and you
-can list them with the function
+Markov models (HMMs). Currently, 5 classification schemes are available,
+and you can list them with the function
 [`list_schemes()`](../reference/list_schemes.md):
 
 \
@@ -85,7 +85,7 @@ can list them with the function
 `#> 2      TAPscan Plants and algae         family, subfamily            TAPscan`\
 `#> 3 PlantTFClass           Plants superclass, class, family PlantTFDB, TAPscan`\
 `#> 4        CISBP       Eukaryotes                    family              CISBP`\
-`#> 5      TFClass          Animals superclass, class, family              CISBP`\
+`#> 5      TFClass          Mammals superclass, class, family     CISBP, TFClass`\
 `#>                                                        Reference`\
 `#> 1                      Jin et al. (2017), doi:10.1093/nar/gkw982`\
 `#> 2                   Petroll et al. (2025), doi:10.1111/tpj.17184`\
@@ -100,11 +100,10 @@ can list them with the function
     ‘Homeodomain’), and TFs with more than one type of DBD are assigned
     to a family named after all of them, sorted alphabetically and
     separated by ‘,’ (e.g., ‘Homeodomain,POU’). As in CIS-BP, DBD hits
-    must have a per-sequence E-value \< 0.01 and a per-domain
-    conditional E-value \< 0.01, and overlapping hits of different DBDs
-    are resolved by keeping only the most significant hit. This
-    classification rule reproduces the families of all TFs in CIS-BP
-    (build 3.10), and
+    must have a per-sequence E-value \<0.01 and a per-domain conditional
+    E-value \<0.01, and overlapping hits of different DBDs are resolved
+    by keeping only the most significant hit. This classification rule
+    reproduces the families of all TFs in CIS-BP (build 3.10), and
     *[tfhunter](https://github.com/almeidasilvaf/tfhunter)* classifies
     TFs into the same CIS-BP families for \>98% of the TFs identified by
     both CIS-BP and
@@ -127,9 +126,6 @@ can list them with the function
     based on rules specifying domains that each family should and should
     not have. Domain hits are identified using gathering thresholds and
     domain-specific coverage cutoffs.
-    *[tfhunter](https://github.com/almeidasilvaf/tfhunter)* uses an R
-    implementation of TAPscan’s original Perl script, which reproduces
-    the results of the original implementation.
 
 4.  **Plant-TFClass** (Blanc-Mathieu et al. 2024): TFs are classified
     into families, classes, and superclasses based on the 3D structure
@@ -153,10 +149,20 @@ can list them with the function
     classes as TFClass itself for \>99% of the TFs. However, some CIS-BP
     families correspond to more than one TFClass family (e.g., CIS-BP’s
     Homeodomain family includes TFClass families HOX, NK, Paired-related
-    HD, and others), so their TFClass family is `NA` (this is the case
-    for most human TFs). CIS-BP families that do not occur in mammals
+    HD, and others). TFs in these families are assigned to a single
+    TFClass family using human and mouse TFs with known TFClass families
+    as references. C2H2 zinc finger TFs are assigned to the family of
+    the reference TF with which they share the largest fraction of amino
+    acid 5-mers, and other TFs are assigned to the family whose profile
+    HMM (built from the DNA-binding domains of the reference TFs) has
+    the highest score. TFs that cannot be assigned to a single family
+    (mostly C2H2 zinc finger TFs specific to some lineages, which are
+    not classified by TFClass) have all possible TFClass families
+    separated by ‘;’. CIS-BP families that do not occur in mammals
     (e.g., most plant and fungal families) are not classified by
-    TFClass, so this scheme is mostly useful for animals.
+    TFClass. As TFClass is a classification of mammalian TFs, we
+    recommend using it only for mammals, and using CIS-BP for other
+    eukaryotes (including other animals).
 
 In all schemes, classification levels without a more specific level are
 filled with the name of the more general level. For example, PlantTFDB
@@ -569,19 +575,19 @@ family.
 | CISBP_family | TFClass_superclass | TFClass_class | TFClass_family | TFClass_ID |
 |:---|:---|:---|:---|:---|
 | NFX | Yet undefined DNA-binding domains | NFX1-type putative zinc finger factors | NFX1 | 0.4.1 |
-| bZIP | Basic domains | Basic leucine zipper factors (bZIP) | NA | 1.1 |
+| bZIP | Basic domains | Basic leucine zipper factors (bZIP) | Jun-related;Fos-related;Maf-related;B-ATF-related;XBP1-related;ATF4-related;CREB-related;CEBP-related | 1.1.1;1.1.2;1.1.3;1.1.4;1.1.5;1.1.6;1.1.7;1.1.8 |
 | bZIP,C2H2 ZF | Basic domains | Basic leucine zipper factors (bZIP) | Jun-related | 1.1.1 |
-| bHLH | Basic domains | Basic helix-loop-helix factors (bHLH) | NA | 1.2 |
+| bHLH | Basic domains | Basic helix-loop-helix factors (bHLH) | E2A;MyoD-ASC-related;Tal-related;Hairy-related;PAS;bHLH-ZIP | 1.2.1;1.2.2;1.2.3;1.2.4;1.2.5;1.2.6 |
 | AP-2 | Basic domains | Basic helix-span-helix factors (bHSH) | AP2 | 1.3.1 |
-| Nuclear receptor | Zinc-coordinating DNA-binding domains | Nuclear receptors with C4 zinc fingers | NA | 2.1 |
+| Nuclear receptor | Zinc-coordinating DNA-binding domains | Nuclear receptors with C4 zinc fingers | Steroid hormone receptors;Thyroid hormone receptor-related factors;RXR-related receptors;NGFI(NR4A);FTZF1related(NR5A);GCNF(NR6) | 2.1.1;2.1.2;2.1.3;2.1.4;2.1.5;2.1.6 |
 | GATA | Zinc-coordinating DNA-binding domains | Other C4 zinc finger-type factors | C4-GATA-related | 2.2.1 |
-| C2H2 ZF | Zinc-coordinating DNA-binding domains | C2H2 zinc finger factors | NA | 2.3 |
+| C2H2 ZF | Zinc-coordinating DNA-binding domains | C2H2 zinc finger factors | Three-zinc finger Krüppel-related;Other factors with up to three adjacent zinc fingers;More than 3 adjacent zinc fingers;Factors with multiple dispersed zinc fingers | 2.3.1;2.3.2;2.3.3;2.3.4 |
 | BED ZF | Zinc-coordinating DNA-binding domains | C2H2 zinc finger factors | BED zinc finger factors | 2.3.5 |
 | DM | Zinc-coordinating DNA-binding domains | DM-type intertwined zinc finger factors | DMRT | 2.5.1 |
 | CxxC | Zinc-coordinating DNA-binding domains | CXXC zinc finger factors | CpG-binding proteins | 2.6.1 |
-| C2HC ZF | Zinc-coordinating DNA-binding domains | C2HC | NA | 2.7 |
+| C2HC ZF | Zinc-coordinating DNA-binding domains | C2HC | MYT;MYST;L3MBTL1 | 2.7.1;2.7.3;2.7.4 |
 | THAP finger | Zinc-coordinating DNA-binding domains | C2CH THAP-type zinc finger factors | THAP | 2.9.1 |
-| Homeodomain | Helix-turn-helix domains | Homeo domain factors | NA | 3.1 |
+| Homeodomain | Helix-turn-helix domains | Homeo domain factors | HOX;NK;Paired-related HD;TALE-type HD;HD-LIM;HD-SINE;HD-ZF;POU | 3.1.1;3.1.2;3.1.3;3.1.4;3.1.5;3.1.6;3.1.8;3.1.10 |
 | Prospero | Helix-turn-helix domains | Homeo domain factors | HD-PROS | 3.1.7 |
 | C2H2 ZF,Homeodomain | Helix-turn-helix domains | Homeo domain factors | HD-ZF | 3.1.8 |
 | CUT | Helix-turn-helix domains | Homeo domain factors | HD-CUT | 3.1.9 |
@@ -600,71 +606,65 @@ family.
 | TEA | Helix-turn-helix domains | TEA domain factors | TEF1-related | 3.6.1 |
 | ARID/BRIGHT | Helix-turn-helix domains | ARID | ARID-related | 3.7.1 |
 | ARID/BRIGHT,RFX | Helix-turn-helix domains | ARID | ARID-related | 3.7.1 |
-| Sox | Other all-alpha-helical DNA-binding domains | High-mobility group (HMG) domain factors | NA | 4.1 |
+| Sox | Other all-alpha-helical DNA-binding domains | High-mobility group (HMG) domain factors | SOX-related;TOX-related;TCF7-related | 4.1.1;4.1.2;4.1.3 |
 | CBF/NF-Y | Other all-alpha-helical DNA-binding domains | Heteromeric CCAAT-binding factors | Heteromeric CCAAT-binding | 4.2.1 |
-| MADS box | alpha-Helices exposed by beta-structures | MADS box factors | NA | 5.1 |
-| SAND | alpha-Helices exposed by beta-structures | SAND domain factors | NA | 5.3 |
-| Rel | Immunoglobulin fold | Rel homology region (RHR) factors | NA | 6.1 |
+| MADS box | alpha-Helices exposed by beta-structures | MADS box factors | Regulators of differentiation;Responders to external signals | 5.1.1;5.1.2 |
+| SAND | alpha-Helices exposed by beta-structures | SAND domain factors | AIRE;DEAF;GMEB;Sp110;Sp140-Sp100 | 5.3.1;5.3.2;5.3.3;5.3.4;5.3.5 |
+| Rel | Immunoglobulin fold | Rel homology region (RHR) factors | NFkappaB-related;NFAT-related | 6.1.1;6.1.3 |
 | CSL | Immunoglobulin fold | Rel homology region (RHR) factors | CSL-related | 6.1.4 |
 | EBF1 | Immunoglobulin fold | Rel homology region (RHR) factors | EBF-related | 6.1.5 |
 | STAT | Immunoglobulin fold | STAT domain factors | STAT | 6.2.1 |
 | p53 | Immunoglobulin fold | p53 domain factors | p53-related | 6.3.1 |
 | Runt | Immunoglobulin fold | Runt domain factors | Runt-related | 6.4.1 |
-| T-box | Immunoglobulin fold | T-Box factors | NA | 6.5 |
+| T-box | Immunoglobulin fold | T-Box factors | Brachyury-related;TBX1-related;TBX2-related;TBX6-related | 6.5.1;6.5.3;6.5.4;6.5.5 |
 | Ndt80/PhoG | Immunoglobulin fold | NDT80 domain factors | MYRF-related | 6.6.1 |
-| Grainyhead | Immunoglobulin fold | Grainyhead | NA | 6.7 |
-| SMAD | beta-Hairpin exposed by an alpha/beta-scaffold | SMAD/NF-1 DNA-binding domain factors | NA | 7.1 |
+| Grainyhead | Immunoglobulin fold | Grainyhead | Grainyhead-related;CP2-related | 6.7.1;6.7.2 |
+| SMAD | beta-Hairpin exposed by an alpha/beta-scaffold | SMAD/NF-1 DNA-binding domain factors | SMAD;NF-1 | 7.1.1;7.1.2 |
 | GCM | beta-Hairpin exposed by an alpha/beta-scaffold | GCM domain factors | GCM | 7.2.1 |
 | TBP | beta-Sheet binding to DNA | TATA-binding proteins | TBP-related | 8.1.1 |
-| AT hook | beta-Sheet binding to DNA | A.T hook factors | NA | 8.2 |
+| AT hook | beta-Sheet binding to DNA | A.T hook factors | A.T hook factors | 8.2 |
 | CSD | beta-Barrel DNA-binding domains | Cold-shock domain factors | Dbp | 9.1.1 |
 
 ## Identifying and classifying TFs
 
-To identify TFs from protein sequence data, you will use the function
-[`annotate_domains()`](../reference/annotate_domains.md). This function
-takes as input an `AAStringSet` object [^1] and returns a list of data
-frames (`PlantTFDB`, `TAPscan`, and `CISBP`) with the protein domains
-used by each classification scheme. By default, domains are annotated
-for all classification schemes, but you can choose specific schemes with
-the argument `scheme` (e.g., `scheme = "CISBP"` if you are only
-interested in CIS-BP and TFClass classifications, which are the only
-schemes for non-plant species). The HMMER program (Finn et al. 2011) is
-used to scan protein sequences for the presence of DNA-binding protein
-domains, as well as auxiliary and forbidden domains. Pre-built HMM
-profiles can be found in the *extdata/* directory of this package. If
-you have a multicore machine, you can speed up HMMER searches by
-increasing the number of threads with the argument `threads`.
+To identify TFs from whole-genome protein sequence data, you will use
+the function [`annotate_domains()`](../reference/annotate_domains.md).
+This function takes as input an `AAStringSet` object [^1] and returns a
+list of data frames (`PlantTFDB`, `TAPscan`, and `CISBP`) with the
+protein domains used by each classification scheme. By default, domains
+are annotated for all classification schemes, but you can choose
+specific schemes with the argument `scheme` (e.g., `scheme = "CISBP"`).
+The HMMER program (Finn et al. 2011) is used to scan protein sequences
+for the presence of DNA-binding protein domains, as well as auxiliary
+and forbidden domains. Pre-built HMM profiles can be found in the
+*extdata/* directory of this package.
 
 Before running [`annotate_domains()`](../reference/annotate_domains.md),
-make sure your protein sequences are suitable for genome-wide TF
-identification:
+make sure that you have a full proteome (i.e., protein sequences encoded
+by all protein-coding genes in the genome) for a given species. E-values
+reported by HMMER depend on the number of sequences that are searched,
+so domain hits with E-values close to the thresholds may pass or fail
+filtering depending on the size of the input data set. For consistent
+results, run [`annotate_domains()`](../reference/annotate_domains.md) on
+the whole proteome instead of on subsets of it (e.g., chunks of
+sequences or candidate TFs only). It’s also important to make sure that
+you use:
 
-**Use only one isoform per gene.** Proteomes with all isoforms of each
-gene will result in redundant TFs, as each isoform is treated as a
-separate gene. We recommend using the translated sequences of the
-longest (or canonical/primary) transcript of each gene. Note, however,
-that some TFs could be missed if their DBDs are only present in other
-isoforms (e.g., 15 human TFs in CIS-BP have DBDs that are only detected
-in isoforms other than the longest).
+- **Only one isoform per gene.** Proteomes with all isoforms of each
+  gene will result in redundant TFs, as each isoform is treated as a
+  separate gene. We recommend using the translated sequences of the
+  longest (or canonical/primary) transcript of each gene. Note, however,
+  that some TFs could be missed if their DBDs are only present in other
+  isoforms (e.g., 15 human TFs in CIS-BP have DBDs that are only
+  detected in isoforms other than the longest).
 
-**Use only proteins encoded by the primary genome assembly.** Some
-proteome files (e.g., the `pep.all` files from Ensembl) also include
-proteins encoded by alternative haplotypes and assembly patches, which
-are copies of genes in the primary assembly. For example, the human
-proteome in Ensembl includes \>100 copies of TFs encoded in alternative
-haplotypes and patches, which would be identified as additional TFs.
-
-**Annotate domains in the whole proteome at once.** E-values reported by
-HMMER depend on the number of sequences that are searched, so domain
-hits with E-values close to the thresholds may pass or fail filtering
-depending on the size of the input data set. For consistent results, run
-[`annotate_domains()`](../reference/annotate_domains.md) on the whole
-proteome instead of on subsets of it (e.g., chunks of sequences or
-candidate TFs only). For the same reason, TFs with E-values close to the
-thresholds may also differ between
-*[tfhunter](https://github.com/almeidasilvaf/tfhunter)* and CIS-BP,
-which used different versions of Pfam profile HMMs and proteomes.
+- **Only proteins encoded by the primary genome assembly.** Some
+  proteome files (e.g., the `pep.all` files from Ensembl) also include
+  proteins encoded by alternative haplotypes and assembly patches, which
+  are copies of genes in the primary assembly. For example, the human
+  proteome in Ensembl includes \>100 copies of TFs encoded in
+  alternative haplotypes and patches, which would be identified as
+  additional TFs.
 
 This is how you can run
 [`annotate_domains()`](../reference/annotate_domains.md) [^2]:
@@ -704,7 +704,16 @@ This is how you can run
 `#> 3  gsu74290.1 PF00010   53  1.3e-07       10     46`\
 `#> 4 gsu127100.1 PF00046   57  6.7e-13        7     57`\
 `#> 5 gsu109490.1 PF00046   57  8.5e-13        3     54`\
-`#> 6  gsu95810.1 PF00096   23  2.1e-08        1     23`
+`#> 6  gsu95810.1 PF00096   23  2.1e-08        1     23`\
+`#> `\
+`#> $TFClass`\
+`#>          Gene Domain qlen c_evalue hmm_from hmm_to score method`\
+`#> 1  gsu06730.1  1.1.1   63  1.3e-06        4     49  18.8    HMM`\
+`#> 2  gsu06730.1  1.1.5   64  1.1e-05        2     37  16.7    HMM`\
+`#> 3  gsu06730.1  1.1.7   64  2.3e-05        8     55  15.1    HMM`\
+`#> 4 gsu105330.1  1.1.5   64  7.2e-05        3     46  13.9    HMM`\
+`#> 5 gsu105330.1  1.1.7   64  3.1e-05        1     51  16.1    HMM`\
+`#> 6 gsu105350.1  1.1.1   63  2.9e-05        7     44  15.5    HMM`
 
 Now that we have our TF-related domains, we can classify TFs in families
 with the function [`classify_tfs()`](../reference/classify_tfs.md).
@@ -736,29 +745,36 @@ with the function [`classify_tfs()`](../reference/classify_tfs.md).
 `#> 4          Tryptophan cluster factors         MYB-related     Myb/SANT`\
 `#> 5 Basic leucine zipper factors (bZIP)                bZIP         bZIP`\
 `#> 6                                <NA>                <NA>         <NA>`\
-`#>         TFClass_superclass                       TFClass_class TFClass_family`\
-`#> 1                     <NA>                                <NA>           <NA>`\
-`#> 2                     <NA>                                <NA>           <NA>`\
-`#> 3                     <NA>                                <NA>           <NA>`\
-`#> 4 Helix-turn-helix domains          Tryptophan cluster factors       Myb-SANT`\
-`#> 5            Basic domains Basic leucine zipper factors (bZIP)           <NA>`\
-`#> 6                     <NA>                                <NA>           <NA>`
+`#>         TFClass_superclass                       TFClass_class`\
+`#> 1                     <NA>                                <NA>`\
+`#> 2                     <NA>                                <NA>`\
+`#> 3                     <NA>                                <NA>`\
+`#> 4 Helix-turn-helix domains          Tryptophan cluster factors`\
+`#> 5            Basic domains Basic leucine zipper factors (bZIP)`\
+`#> 6                     <NA>                                <NA>`\
+`#>                                                                                          TFClass_family`\
+`#> 1                                                                                                  <NA>`\
+`#> 2                                                                                                  <NA>`\
+`#> 3                                                                                                  <NA>`\
+`#> 4                                                                                              Myb-SANT`\
+`#> 5 Jun-related;Fos-related;Maf-related;B-ATF-related;XBP1-related;ATF4-related;CREB-related;CEBP-related`\
+`#> 6                                                                                                  <NA>`
 
 The output contains one row per gene, and genes that are not classified
 by one of the schemes have `NA` in the respective columns. By default,
 [`classify_tfs()`](../reference/classify_tfs.md) uses all classification
-schemes for which domain annotation is available. As Plant-TFClass
-classifications are inferred from TAPscan and PlantTFDB classifications,
-TAPscan and PlantTFDB annotations are required to obtain them. Likewise,
-TFClass classifications are inferred from CIS-BP classifications. As
-TAPscan’s scheme also includes other transcription-associated proteins
-(e.g., transcriptional regulators), more genes are usually classified
-with TAPscan.
+schemes for which domain annotation is available. Obtaining
+classifications from TFClass and Plant-TFClass requires also classifying
+with CIS-BP and TAPscan, respectively. For TFClass,
+[`annotate_domains()`](../reference/annotate_domains.md) also returns
+the evidence used to assign TFs to a single TFClass family (element
+*TFClass* of the output).
 
-If you are interested in specific classification schemes, you can use
-the argument `scheme` to get only the classifications of these schemes.
-For TAPscan, the class of each family (TF, TR, or PT) is indicated in
-the column `TAP_class`.
+You can also obtain classifications from specific schemes using the
+`scheme` argument. Of note, as TAPscan’s scheme also includes other
+transcription-associated proteins (e.g., transcriptional regulators),
+more genes are usually classified with TAPscan. TAP classes of each
+family (TF, TR, or PT) are indicated in the column `TAP_class`.
 
 \
 `# Get TAPscan classifications only`\
@@ -788,20 +804,6 @@ the column `TAP_class`.
 `#> 4 gsu06730.1                 <NA>                <NA>         bZIP`\
 `#> 5 gsu08760.1                 <NA>                <NA>           DM`\
 `#> 6 gsu09770.1                  C3H                 C3H         <NA>`
-
-TAP classes, as well as descriptions and references for each TAPscan
-family, are available in the data set `tap_class`.
-
-\
-[`data`](https://rdrr.io/r/utils/data.html)`(``tap_class``)`\
-[`head`](https://rdrr.io/r/utils/head.html)`(``tap_class``[``, `[`c`](https://rdrr.io/r/base/c.html)`(``"TAP_family"``, ``"TAP_class"``)``]``)`\
-`#>   TAP_family TAP_class`\
-`#> 1   ABI3/VP1        TF`\
-`#> 2        AP2        TF`\
-`#> 3        ARF        TF`\
-`#> 4       ARID        TF`\
-`#> 5 Alfin-like        TF`\
-`#> 6  Argonaute        TR`
 
 ## Counting TFs per family in multiple species at once
 
@@ -966,7 +968,8 @@ counting. For example, here is how you can get counts of TAPscan TFs
 `#> C2H2         2    3    0    4`\
 `#> C3H          4    6    2    2`
 
-Here is how you can get TF counts per Plant-TFClass superclass:
+As additional examples, here is how you can get TF counts per
+Plant-TFClass superclass, and per TFClass class:
 
 \
 `# Get TF counts per Plant-TFClass superclass`\
@@ -980,26 +983,7 @@ Here is how you can get TF counts per Plant-TFClass superclass:
 `#> Helix-turn-helix domains                      27   24   33   21`\
 `#> Other all-alpha-helical DNA-binding domains    1    1    2    2`\
 `#> Yet undefined DNA-binding domains              1    1    1    0`\
-`#> Zinc-coordinating DNA-binding domains          3    4    2    6`
-
-Here is how you can get TF counts per PlantTFDB family:
-
-\
-`# Get TF counts per PlantTFDB family`\
-`ptfdb_counts`` ``<-`` `[`get_tf_counts`](../reference/get_tf_counts.md)`(``families``, scheme ``=`` ``"PlantTFDB"``)`\
-[`head`](https://rdrr.io/r/utils/head.html)`(``SummarizedExperiment``::`[`assay`](https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html)`(``ptfdb_counts``)``)`\
-`#>      Gsu1 Gsu2 Gsu3 Gsu4`\
-`#> bHLH    3    2    0    1`\
-`#> bZIP    7    7    2    7`\
-`#> C2C2    3    3    7    3`\
-`#> C2H2    1    2    0    5`\
-`#> C3H     5    6    3    2`\
-`#> CPP     1    1    1    0`
-
-Finally, here is how you can get TF counts per TFClass class. Note that
-TFs without a classification at the chosen level (e.g., TFs without a
-TFClass family when `level = "family"`) are not counted.
-
+`#> Zinc-coordinating DNA-binding domains          3    4    2    6`\
 \
 `# Get TF counts per TFClass class`\
 `tfclass_counts`` ``<-`` `[`get_tf_counts`](../reference/get_tf_counts.md)`(``families``, scheme ``=`` ``"TFClass"``, level ``=`` ``"class"``)`\
@@ -1019,6 +1003,89 @@ associations between TF counts and eco-evolutionary aspects or traits of
 each species (e.g., higher frequencies of a stress-related TF family in
 a species that inhabits a stressful environment).
 
+## Curated human TFs
+
+The human TFs were manually curated by experts (Lambert et al. 2018),
+who examined each candidate protein and the evidence for its
+sequence-specific DNA binding. This curated list is more accurate than
+TFs identified from the human proteome based on DBDs only (e.g., several
+chromatin regulators and RNA-binding proteins contain DBD-like domains),
+so we provide it in the data set `human_tfs`, with TFs already
+classified with the CIS-BP and TFClass schemes.
+
+\
+[`data`](https://rdrr.io/r/utils/data.html)`(``human_tfs``)`\
+[`head`](https://rdrr.io/r/utils/head.html)`(``human_tfs``)`\
+`#>              Gene     Symbol CISBP_family                    TFClass_superclass`\
+`#> 1 ENSG00000267179 AC008770.3      C2H2 ZF Zinc-coordinating DNA-binding domains`\
+`#> 2 ENSG00000267281 AC023509.3 bZIP,C2H2 ZF                         Basic domains`\
+`#> 3 ENSG00000233757 AC092835.1      C2H2 ZF Zinc-coordinating DNA-binding domains`\
+`#> 4 ENSG00000264668 AC138696.1      C2H2 ZF Zinc-coordinating DNA-binding domains`\
+`#> 5 ENSG00000101126       ADNP  Homeodomain              Helix-turn-helix domains`\
+`#> 6 ENSG00000101544      ADNP2  Homeodomain              Helix-turn-helix domains`\
+`#>                         TFClass_class`\
+`#> 1            C2H2 zinc finger factors`\
+`#> 2 Basic leucine zipper factors (bZIP)`\
+`#> 3            C2H2 zinc finger factors`\
+`#> 4            C2H2 zinc finger factors`\
+`#> 5                Homeo domain factors`\
+`#> 6                Homeo domain factors`\
+`#>                                                                                                                                                          TFClass_family`\
+`#> 1 Three-zinc finger Krüppel-related;Other factors with up to three adjacent zinc fingers;More than 3 adjacent zinc fingers;Factors with multiple dispersed zinc fingers`\
+`#> 2                                                                                                                                                           Jun-related`\
+`#> 3 Three-zinc finger Krüppel-related;Other factors with up to three adjacent zinc fingers;More than 3 adjacent zinc fingers;Factors with multiple dispersed zinc fingers`\
+`#> 4                                                                                                                                     More than 3 adjacent zinc fingers`\
+`#> 5                                                                                                                                                                 HD-ZF`\
+`#> 6                                                                                                                                                                 HD-ZF`\
+`#>         TFClass_source         DBD                     TF_assessment`\
+`#> 1 Inferred from CIS-BP     C2H2 ZF Likely to be sequence specific TF`\
+`#> 2              TFClass        bZIP                       Known motif`\
+`#> 3 Inferred from CIS-BP     C2H2 ZF Likely to be sequence specific TF`\
+`#> 4              TFClass     C2H2 ZF                       Known motif`\
+`#> 5              TFClass Homeodomain Likely to be sequence specific TF`\
+`#> 6              TFClass Homeodomain Likely to be sequence specific TF`\
+`#>              Binding_mode           Motif_status`\
+`#> 1 Monomer or homomultimer               No motif`\
+`#> 2 Monomer or homomultimer 100 perc ID - in vitro`\
+`#> 3 Monomer or homomultimer               No motif`\
+`#> 4 Monomer or homomultimer 100 perc ID - in vitro`\
+`#> 5 Monomer or homomultimer               No motif`\
+`#> 6 Monomer or homomultimer               No motif`\
+\
+`# Number of TFs per DNA-binding assessment`\
+[`table`](https://rdrr.io/r/base/table.html)`(``human_tfs``$``TF_assessment``)`\
+`#> `\
+`#>                    Inferred motif                       Known motif `\
+`#>                               104                              1107 `\
+`#> Likely to be sequence specific TF `\
+`#>                               428`
+
+TFClass classifications were obtained directly from TFClass for TFs in
+TFClass (column *TFClass_source*), and inferred from CIS-BP families for
+other TFs. As `human_tfs` has the same columns as the output of
+[`classify_tfs()`](../reference/classify_tfs.md) for the CIS-BP and
+TFClass schemes, you can pass it to
+[`get_tf_counts()`](../reference/get_tf_counts.md) together with your
+own classifications (e.g., `list(Human = human_tfs, Species2 = ...)`).
+
+\
+`# Count human TFs per TFClass superclass`\
+`human_counts`` ``<-`` `[`get_tf_counts`](../reference/get_tf_counts.md)`(`\
+`    `[`list`](https://rdrr.io/r/base/list.html)`(``Human ``=`` ``human_tfs``)``, scheme ``=`` ``"TFClass"``, level ``=`` ``"superclass"`\
+`)`\
+`SummarizedExperiment``::`[`assay`](https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html)`(``human_counts``)`\
+`#>                                                Human`\
+`#> alpha-Helices exposed by beta-structures          15`\
+`#> Basic domains                                    168`\
+`#> beta-Barrel DNA-binding domains                    5`\
+`#> beta-Hairpin exposed by an alpha/beta-scaffold    11`\
+`#> beta-Sheet binding to DNA                          8`\
+`#> Helix-turn-helix domains                         377`\
+`#> Immunoglobulin fold                               53`\
+`#> Other all-alpha-helical DNA-binding domains       32`\
+`#> Yet undefined DNA-binding domains                  9`\
+`#> Zinc-coordinating DNA-binding domains            840`
+
 ## Session information
 
 This document was created under the following conditions:
@@ -1028,15 +1095,15 @@ This document was created under the following conditions:
 `#> ``─ Session info ───────────────────────────────────────────────────────────────`\
 `#>  ``setting `` ``value`\
 `#>  version  R version 4.6.1 (2026-06-24)`\
-`#>  os       Ubuntu 24.04.4 LTS`\
+`#>  os       Ubuntu 24.04.5 LTS`\
 `#>  system   x86_64, linux-gnu`\
 `#>  ui       X11`\
 `#>  language en`\
 `#>  collate  en_US.UTF-8`\
 `#>  ctype    en_US.UTF-8`\
 `#>  tz       UTC`\
-`#>  date     2026-10-15`\
-`#>  pandoc   3.11 @ /usr/bin/ (via rmarkdown)`\
+`#>  date     2026-10-29`\
+`#>  pandoc   3.12.1 @ /usr/bin/ (via rmarkdown)`\
 `#>  quarto   1.10.19 @ /usr/local/bin/quarto`\
 `#> `\
 `#> ``─ Packages ───────────────────────────────────────────────────────────────────`\
@@ -1066,9 +1133,9 @@ This document was created under the following conditions:
 `#>  jquerylib              0.1.4   ``2021-04-26`` ``[2]`` ``RSPM (R 4.6.0)`\
 `#>  jsonlite               2.0.0   ``2025-03-27`` ``[2]`` ``RSPM (R 4.6.0)`\
 `#>  knitr                  1.52    ``2026-09-06`` ``[2]`` ``RSPM (R 4.6.0)`\
-`#>  lattice                0.23-1  ``2026-08-12`` ``[2]`` ``RSPM (R 4.6.0)`\
+`#>  lattice                0.23-1  ``2026-08-12`` ``[2]`` ``RSPM (R 4.6.1)`\
 `#>  lifecycle              1.0.5   ``2026-01-08`` ``[2]`` ``RSPM (R 4.6.0)`\
-`#>  Matrix                 1.7-6   ``2026-07-25`` ``[2]`` ``RSPM (R 4.6.0)`\
+`#>  Matrix                 1.7-6   ``2026-07-25`` ``[2]`` ``RSPM (R 4.6.1)`\
 `#>  MatrixGenerics         1.25.0  ``2026-04-28`` ``[1]`` ``Bioconductor 3.24 (R 4.6.1)`\
 `#>  matrixStats            1.5.0   ``2025-01-07`` ``[1]`` ``RSPM (R 4.6.0)`\
 `#>  otel                   0.2.0   ``2025-08-29`` ``[2]`` ``RSPM (R 4.6.0)`\
@@ -1086,8 +1153,8 @@ This document was created under the following conditions:
 `#>  SummarizedExperiment   1.43.0  ``2026-04-28`` ``[1]`` ``Bioconductor 3.24 (R 4.6.1)`\
 `#>  systemfonts            1.3.2   ``2026-03-05`` ``[2]`` ``RSPM (R 4.6.0)`\
 `#>  textshaping            1.0.5   ``2026-03-06`` ``[2]`` ``RSPM (R 4.6.0)`\
-`#>  tfhunter             * 0.99.0  ``2026-10-15`` ``[1]`` ``Bioconductor`\
-`#>  xfun                   0.61    ``2026-09-16`` ``[2]`` ``RSPM (R 4.6.0)`\
+`#>  tfhunter             * 0.99.0  ``2026-10-29`` ``[1]`` ``Bioconductor`\
+`#>  xfun                   0.62    ``2026-10-16`` ``[2]`` ``RSPM (R 4.6.0)`\
 `#>  XVector                0.53.0  ``2026-04-28`` ``[1]`` ``Bioconductor 3.24 (R 4.6.1)`\
 `#>  yaml                   2.3.12  ``2025-12-10`` ``[2]`` ``RSPM (R 4.6.0)`\
 `#> `\
@@ -1113,6 +1180,10 @@ Jin, Jinpu, Feng Tian, De-Chang Yang, et al. 2017. “PlantTFDB 4.0:
 Toward a Central Hub for Transcription Factors and Regulatory
 Interactions in Plants.” *Nucleic Acids Research* 45 (D1): D1040–45.
 <https://doi.org/10.1093/nar/gkw982>.
+
+Lambert, Samuel A, Arttu Jolma, Laura F Campitelli, et al. 2018. “The
+Human Transcription Factors.” *Cell* 172 (4): 650–65.
+<https://doi.org/10.1016/j.cell.2018.01.029>.
 
 Osuna-Cruz, Cristina Maria, Gust Bilcke, Emmelien Vancaester, et al.
 2020. “The Seminavis Robusta Genome Provides Insights into the

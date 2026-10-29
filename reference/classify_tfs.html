@@ -45,7 +45,7 @@ TAPscan, Plant-TFClass, CIS-BP, and TFClass (see <code><a href="list_schemes.htm
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">classify_tfs</span><span class="op">(</span>domain_annotation <span class="op">=</span> <span class="cn">NULL</span>, scheme <span class="op">=</span> <span class="st">"all"</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">classify_tfs</span><span class="op">(</span>domain_annotation <span class="op">=</span> <span class="cn">NULL</span>, scheme <span class="op">=</span> <span class="st">"all"</span>, min_shared <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -62,6 +62,12 @@ as returned by <code><a href="annotate_domains.html">annotate_domains()</a></cod
 return. Either 'all' (all schemes for which domain annotation is
 available) or one or more of 'PlantTFDB', 'TAPscan', 'PlantTFClass',
 'CISBP', and 'TFClass'. Default: 'all'.</p></dd>
+
+
+<dt id="arg-min-shared">min_shared<a class="anchor" aria-label="anchor" href="#arg-min-shared"></a></dt>
+<dd><p>Numeric indicating the minimum fraction of 5-mers
+shared with a reference TF to assign a C2H2 ZF TF to a single TFClass
+family (see details). Only used for TFClass. Default: 0.1.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -139,14 +145,31 @@ superclasses, classes, families, and subfamilies based on the structure
 of their DBDs, and TFClass classifications are inferred from CIS-BP
 families using a correspondence table between the two classification
 systems. As TFClass includes only TFs of human and other mammals,
+it should be used only for mammals (use CIS-BP for other eukaryotes).
 TFs of CIS-BP families that do not occur in mammals (e.g., most plant
-and fungal TF families) are not classified by TFClass, and some CIS-BP
-families correspond to more than one TFClass family (e.g., CIS-BP's
-Homeodomain), so their TFClass family is NA. CIS-BP families with
-multiple types of DBDs that are not in the correspondence table are
+and fungal TF families) are not classified by TFClass. CIS-BP families
+with multiple types of DBDs that are not in the correspondence table are
 classified based on each DBD's family; if these are in different TFClass
-classes, all possible superclasses and classes are reported,
-separated by ';'.</p>
+classes or families, all possible superclasses, classes, and families are
+reported, separated by ';'.</p>
+<p>Some CIS-BP families correspond to more than one TFClass family (e.g.,
+CIS-BP's Homeodomain corresponds to TFClass families HOX, NK, TALE-type
+HD, and others). TFs in these families are assigned to a single TFClass
+family using reference TFs of human and mouse with known TFClass
+families, as follows:</p><ul><li><p><strong>C2H2 ZF</strong>: TFs are assigned to the family of the reference
+C2H2 ZF TF that shares the largest fraction of the TF's amino acid
+5-mers (ignoring 5-mers found in &gt; 2% of the reference TFs), if this
+fraction is &gt;= <strong>min_shared</strong>.</p></li>
+<li><p><strong>Other families</strong>: TFs are scanned with profile HMMs built
+from the DNA-binding domains of the reference TFs in each TFClass
+family, and assigned to the family with the highest score, if this
+score is &gt;= 10 bits higher than the score of any other possible
+family.</p></li>
+</ul><p>TFs that cannot be assigned to a single family (e.g., C2H2 ZF TFs that
+are specific to some lineages, which are not classified by TFClass) have
+all possible TFClass families separated by ';'. In validation tests with
+TFs of cow, dog, and opossum classified by TFClass, TFs assigned to a
+single family were assigned to the correct family in &gt;99% of the cases.</p>
 <p>In all schemes, classification levels without a more specific level
 are filled with the name of the more general level. For example,
 PlantTFDB family bHLH has no subfamilies, so its subfamily is bHLH.</p>
@@ -204,13 +227,20 @@ their mammalian orthologs. Nucleic Acids Research, 46(D1), D343-D347.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4          Tryptophan cluster factors         MYB-related     Myb/SANT</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 5 Basic leucine zipper factors (bZIP)                bZIP         bZIP</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 6                                &lt;NA&gt;                &lt;NA&gt;         &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         TFClass_superclass                       TFClass_class TFClass_family</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                     &lt;NA&gt;                                &lt;NA&gt;           &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                     &lt;NA&gt;                                &lt;NA&gt;           &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                     &lt;NA&gt;                                &lt;NA&gt;           &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 Helix-turn-helix domains          Tryptophan cluster factors       Myb-SANT</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5            Basic domains Basic leucine zipper factors (bZIP)           &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                     &lt;NA&gt;                                &lt;NA&gt;           &lt;NA&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         TFClass_superclass                       TFClass_class</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1                     &lt;NA&gt;                                &lt;NA&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2                     &lt;NA&gt;                                &lt;NA&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3                     &lt;NA&gt;                                &lt;NA&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 Helix-turn-helix domains          Tryptophan cluster factors</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5            Basic domains Basic leucine zipper factors (bZIP)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6                     &lt;NA&gt;                                &lt;NA&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                                          TFClass_family</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1                                                                                                  &lt;NA&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2                                                                                                  &lt;NA&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3                                                                                                  &lt;NA&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4                                                                                              Myb-SANT</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 Jun-related;Fos-related;Maf-related;B-ATF-related;XBP1-related;ATF4-related;CREB-related;CEBP-related</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6                                                                                                  &lt;NA&gt;</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Only TAPscan classifications, with TAP classes (TF, TR, or PT)</span></span></span>
 <span class="r-in"><span><span class="va">tapscan_families</span> <span class="op">&lt;-</span> <span class="fu">classify_tfs</span><span class="op">(</span><span class="va">gsu_annotation</span>, scheme <span class="op">=</span> <span class="st">"TAPscan"</span><span class="op">)</span></span></span>
@@ -240,13 +270,20 @@ their mammalian orthologs. Nucleic Acids Research, 46(D1), D343-D347.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4 gsu100590.1              Helix-turn-helix domains</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 5 gsu102830.1              Helix-turn-helix domains</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 6 gsu105330.1                         Basic domains</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                             TFClass_class TFClass_family</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1              Tryptophan cluster factors       Myb-SANT</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2     Basic leucine zipper factors (bZIP)           &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 DM-type intertwined zinc finger factors           DMRT</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4              Tryptophan cluster factors       Myb-SANT</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                      Heat shock factors            HSF</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6     Basic leucine zipper factors (bZIP)           &lt;NA&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                             TFClass_class</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1              Tryptophan cluster factors</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2     Basic leucine zipper factors (bZIP)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 DM-type intertwined zinc finger factors</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4              Tryptophan cluster factors</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5                      Heat shock factors</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6     Basic leucine zipper factors (bZIP)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                                          TFClass_family</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1                                                                                              Myb-SANT</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 Jun-related;Fos-related;Maf-related;B-ATF-related;XBP1-related;ATF4-related;CREB-related;CEBP-related</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3                                                                                                  DMRT</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4                                                                                              Myb-SANT</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5                                                                                                   HSF</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 Jun-related;Fos-related;Maf-related;B-ATF-related;XBP1-related;ATF4-related;CREB-related;CEBP-related</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

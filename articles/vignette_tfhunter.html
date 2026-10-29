@@ -64,16 +64,43 @@ Almeida-Silva</h4>
       <p>VIB-UGent Center for Plant Systems Biology, Ghent University,
 Ghent,
 Belgium</p>
+<br><h4 data-toc-skip class="author">Romain
+Blanc-Mathieu</h4>
+            <address class="author_afil">
+      <p>Laboratoire Physiologie Cellulaire et Végétale, Université
+Grenoble Alpes, CNRS, CEA, INRAE, Grenoble,
+France</p>
+<br><h4 data-toc-skip class="author">Stefan
+Rensing</h4>
+            <address class="author_afil">
+      <p>University of Freiburg, Freiburg,
+Germany</p>
+<br><h4 data-toc-skip class="author">Klaas
+Vandepoele</h4>
+            <address class="author_afil">
+      <p>VIB-UGent Center for Plant Systems Biology, Ghent University,
+Ghent,
+Belgium</p>
+<br><h4 data-toc-skip class="author">François
+Parcy</h4>
+            <address class="author_afil">
+      <p>Laboratoire Physiologie Cellulaire et Végétale, Université
+Grenoble Alpes, CNRS, CEA, INRAE, Grenoble,
+France</p>
 <br><h4 data-toc-skip class="author">Yves
 Van de Peer</h4>
             <address class="author_afil">
       <p>VIB-UGent Center for Plant Systems Biology, Ghent University,
 Ghent, Belgium</p>
-<br><h4 data-toc-skip class="date">2026-10-15</h4>
+<br><h4 data-toc-skip class="date">2026-10-29</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/almeidasilvaf/tfhunter/blob/devel/vignettes/vignette_tfhunter.Rmd" class="external-link"><code>vignettes/vignette_tfhunter.Rmd</code></a></small>
       <div class="d-none name"><code>vignette_tfhunter.Rmd</code></div>
     </address>
+</address>
+</address>
+</address>
+</address>
 </address>
 </div>
 
@@ -81,14 +108,21 @@ Ghent, Belgium</p>
     
 <style type="text/css">
 .callout {
-    margin: 1em 0;
+    margin: 1em 150px 1em 65px;       /* same left/right edges as paragraph text */
     padding: 0.6em 1em;
+    border: 1px solid #dee2e6;        /* thin outline, as in Quarto callouts */
     border-left: 5px solid #1a81c2;
     background-color: #eef6fb;
     border-radius: 3px;
 }
+.callout > p { padding: 0; }          
 .callout > p:first-child { margin-top: 0; }
 .callout > p:last-child { margin-bottom: 0; }
+
+/* Narrow screens: remove insets like BiocStyle does */
+@media screen and (max-width: 991px) {
+    .callout { margin-left: 0; margin-right: 0; }
+}
 </style>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
@@ -104,7 +138,7 @@ classification scheme of <a href="https://cisbp.ccbr.utoronto.ca/" class="extern
 also be classified into families and subfamilies (when applicable) using
 the classification schemes implemented in <a href="http://planttfdb.gao-lab.org/" class="external-link">PlantTFDB</a> and <a href="https://tapscan.plantcode.cup.uni-freiburg.de/" class="external-link">TAPscan</a>, as
 well as into structure-based families, classes, and superclasses as in
-Plant-TFClass. Likewise, animal TFs can be classified into
+Plant-TFClass. Likewise, mammalian TFs can be classified into
 structure-based superclasses, classes, and families as in TFClass.
 <em><a href="https://github.com/almeidasilvaf/tfhunter" class="external-link">tfhunter</a></em> is
 the successor of the Bioconductor package <em><a href="https://bioconductor.org/packages/3.24/planttfhunter" class="external-link">planttfhunter</a></em>.
@@ -163,8 +197,8 @@ TF-related domains for demonstration purposes. The object
 </h2>
 <p>TF identification and classification is based on the presence of
 signature protein domains, which are identified using profile hidden
-Markov models (HMMs). Five classification schemes are available, and you
-can list them with the function <code><a href="../reference/list_schemes.html">list_schemes()</a></code>:</p>
+Markov models (HMMs). Currently, 5 classification schemes are available,
+and you can list them with the function <code><a href="../reference/list_schemes.html">list_schemes()</a></code>:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/list_schemes.html">list_schemes</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;         Scheme             Taxa                    Levels         Annotation</span></span>
@@ -172,7 +206,7 @@ can list them with the function <code><a href="../reference/list_schemes.html">l
 <span><span class="co">#&gt; 2      TAPscan Plants and algae         family, subfamily            TAPscan</span></span>
 <span><span class="co">#&gt; 3 PlantTFClass           Plants superclass, class, family PlantTFDB, TAPscan</span></span>
 <span><span class="co">#&gt; 4        CISBP       Eukaryotes                    family              CISBP</span></span>
-<span><span class="co">#&gt; 5      TFClass          Animals superclass, class, family              CISBP</span></span>
+<span><span class="co">#&gt; 5      TFClass          Mammals superclass, class, family     CISBP, TFClass</span></span>
 <span><span class="co">#&gt;                                                        Reference</span></span>
 <span><span class="co">#&gt; 1                      Jin et al. (2017), doi:10.1093/nar/gkw982</span></span>
 <span><span class="co">#&gt; 2                   Petroll et al. (2025), doi:10.1111/tpj.17184</span></span>
@@ -187,8 +221,8 @@ of DBDs they contain. Each DBD corresponds to a family (e.g.,
 ‘Homeodomain’), and TFs with more than one type of DBD are assigned to a
 family named after all of them, sorted alphabetically and separated by
 ‘,’ (e.g., ‘Homeodomain,POU’). As in CIS-BP, DBD hits must have a
-per-sequence E-value &lt; 0.01 and a per-domain conditional E-value &lt;
-0.01, and overlapping hits of different DBDs are resolved by keeping
+per-sequence E-value &lt;0.01 and a per-domain conditional E-value
+&lt;0.01, and overlapping hits of different DBDs are resolved by keeping
 only the most significant hit. This classification rule reproduces the
 families of all TFs in CIS-BP (build 3.10), and <em><a href="https://github.com/almeidasilvaf/tfhunter" class="external-link">tfhunter</a></em>
 classifies TFs into the same CIS-BP families for &gt;98% of the TFs
@@ -208,9 +242,8 @@ al. 2025)</span>: transcription-associated proteins (TAPs), which
 include TFs, transcriptional regulators (TRs), and putative TAPs (PTs),
 are classified in over 130 families based on rules specifying domains
 that each family should and should not have. Domain hits are identified
-using gathering thresholds and domain-specific coverage cutoffs. <em><a href="https://github.com/almeidasilvaf/tfhunter" class="external-link">tfhunter</a></em> uses
-an R implementation of TAPscan’s original Perl script, which reproduces
-the results of the original implementation.</p></li>
+using gathering thresholds and domain-specific coverage
+cutoffs.</p></li>
 <li><p><strong>Plant-TFClass</strong> <span class="citation">(Blanc-Mathieu et al. 2024)</span>: TFs are classified
 into families, classes, and superclasses based on the 3D structure of
 their DNA-binding domains. Plant-TFClass classifications are inferred
@@ -231,11 +264,19 @@ and TFClass classifications of human TFs. This approach assigns human
 TFs to the same TFClass classes as TFClass itself for &gt;99% of the
 TFs. However, some CIS-BP families correspond to more than one TFClass
 family (e.g., CIS-BP’s Homeodomain family includes TFClass families HOX,
-NK, Paired-related HD, and others), so their TFClass family is
-<code>NA</code> (this is the case for most human TFs). CIS-BP families
-that do not occur in mammals (e.g., most plant and fungal families) are
-not classified by TFClass, so this scheme is mostly useful for
-animals.</p></li>
+NK, Paired-related HD, and others). TFs in these families are assigned
+to a single TFClass family using human and mouse TFs with known TFClass
+families as references. C2H2 zinc finger TFs are assigned to the family
+of the reference TF with which they share the largest fraction of amino
+acid 5-mers, and other TFs are assigned to the family whose profile HMM
+(built from the DNA-binding domains of the reference TFs) has the
+highest score. TFs that cannot be assigned to a single family (mostly
+C2H2 zinc finger TFs specific to some lineages, which are not classified
+by TFClass) have all possible TFClass families separated by ‘;’. CIS-BP
+families that do not occur in mammals (e.g., most plant and fungal
+families) are not classified by TFClass. As TFClass is a classification
+of mammalian TFs, we recommend using it only for mammals, and using
+CIS-BP for other eukaryotes (including other animals).</p></li>
 </ol>
 <p>In all schemes, classification levels without a more specific level
 are filled with the name of the more general level. For example,
@@ -3096,11 +3137,11 @@ table are classified based on the TFClass classifications of each DBD’s
 family.</p>
 <table class="table">
 <colgroup>
-<col width="15%">
-<col width="31%">
-<col width="27%">
-<col width="17%">
 <col width="7%">
+<col width="14%">
+<col width="12%">
+<col width="50%">
+<col width="15%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">CISBP_family</th>
@@ -3121,8 +3162,8 @@ family.</p>
 <td align="left">bZIP</td>
 <td align="left">Basic domains</td>
 <td align="left">Basic leucine zipper factors (bZIP)</td>
-<td align="left">NA</td>
-<td align="left">1.1</td>
+<td align="left">Jun-related;Fos-related;Maf-related;B-ATF-related;XBP1-related;ATF4-related;CREB-related;CEBP-related</td>
+<td align="left">1.1.1;1.1.2;1.1.3;1.1.4;1.1.5;1.1.6;1.1.7;1.1.8</td>
 </tr>
 <tr class="odd">
 <td align="left">bZIP,C2H2 ZF</td>
@@ -3135,8 +3176,8 @@ family.</p>
 <td align="left">bHLH</td>
 <td align="left">Basic domains</td>
 <td align="left">Basic helix-loop-helix factors (bHLH)</td>
-<td align="left">NA</td>
-<td align="left">1.2</td>
+<td align="left">E2A;MyoD-ASC-related;Tal-related;Hairy-related;PAS;bHLH-ZIP</td>
+<td align="left">1.2.1;1.2.2;1.2.3;1.2.4;1.2.5;1.2.6</td>
 </tr>
 <tr class="odd">
 <td align="left">AP-2</td>
@@ -3149,8 +3190,10 @@ family.</p>
 <td align="left">Nuclear receptor</td>
 <td align="left">Zinc-coordinating DNA-binding domains</td>
 <td align="left">Nuclear receptors with C4 zinc fingers</td>
-<td align="left">NA</td>
-<td align="left">2.1</td>
+<td align="left">Steroid hormone receptors;Thyroid hormone
+receptor-related factors;RXR-related
+receptors;NGFI(NR4A);FTZF1related(NR5A);GCNF(NR6)</td>
+<td align="left">2.1.1;2.1.2;2.1.3;2.1.4;2.1.5;2.1.6</td>
 </tr>
 <tr class="odd">
 <td align="left">GATA</td>
@@ -3163,8 +3206,10 @@ family.</p>
 <td align="left">C2H2 ZF</td>
 <td align="left">Zinc-coordinating DNA-binding domains</td>
 <td align="left">C2H2 zinc finger factors</td>
-<td align="left">NA</td>
-<td align="left">2.3</td>
+<td align="left">Three-zinc finger Krüppel-related;Other factors with up
+to three adjacent zinc fingers;More than 3 adjacent zinc fingers;Factors
+with multiple dispersed zinc fingers</td>
+<td align="left">2.3.1;2.3.2;2.3.3;2.3.4</td>
 </tr>
 <tr class="odd">
 <td align="left">BED ZF</td>
@@ -3191,8 +3236,8 @@ family.</p>
 <td align="left">C2HC ZF</td>
 <td align="left">Zinc-coordinating DNA-binding domains</td>
 <td align="left">C2HC</td>
-<td align="left">NA</td>
-<td align="left">2.7</td>
+<td align="left">MYT;MYST;L3MBTL1</td>
+<td align="left">2.7.1;2.7.3;2.7.4</td>
 </tr>
 <tr class="odd">
 <td align="left">THAP finger</td>
@@ -3205,8 +3250,9 @@ family.</p>
 <td align="left">Homeodomain</td>
 <td align="left">Helix-turn-helix domains</td>
 <td align="left">Homeo domain factors</td>
-<td align="left">NA</td>
-<td align="left">3.1</td>
+<td align="left">HOX;NK;Paired-related HD;TALE-type
+HD;HD-LIM;HD-SINE;HD-ZF;POU</td>
+<td align="left">3.1.1;3.1.2;3.1.3;3.1.4;3.1.5;3.1.6;3.1.8;3.1.10</td>
 </tr>
 <tr class="odd">
 <td align="left">Prospero</td>
@@ -3338,8 +3384,8 @@ family.</p>
 <td align="left">Sox</td>
 <td align="left">Other all-alpha-helical DNA-binding domains</td>
 <td align="left">High-mobility group (HMG) domain factors</td>
-<td align="left">NA</td>
-<td align="left">4.1</td>
+<td align="left">SOX-related;TOX-related;TCF7-related</td>
+<td align="left">4.1.1;4.1.2;4.1.3</td>
 </tr>
 <tr class="even">
 <td align="left">CBF/NF-Y</td>
@@ -3352,22 +3398,23 @@ family.</p>
 <td align="left">MADS box</td>
 <td align="left">alpha-Helices exposed by beta-structures</td>
 <td align="left">MADS box factors</td>
-<td align="left">NA</td>
-<td align="left">5.1</td>
+<td align="left">Regulators of differentiation;Responders to external
+signals</td>
+<td align="left">5.1.1;5.1.2</td>
 </tr>
 <tr class="even">
 <td align="left">SAND</td>
 <td align="left">alpha-Helices exposed by beta-structures</td>
 <td align="left">SAND domain factors</td>
-<td align="left">NA</td>
-<td align="left">5.3</td>
+<td align="left">AIRE;DEAF;GMEB;Sp110;Sp140-Sp100</td>
+<td align="left">5.3.1;5.3.2;5.3.3;5.3.4;5.3.5</td>
 </tr>
 <tr class="odd">
 <td align="left">Rel</td>
 <td align="left">Immunoglobulin fold</td>
 <td align="left">Rel homology region (RHR) factors</td>
-<td align="left">NA</td>
-<td align="left">6.1</td>
+<td align="left">NFkappaB-related;NFAT-related</td>
+<td align="left">6.1.1;6.1.3</td>
 </tr>
 <tr class="even">
 <td align="left">CSL</td>
@@ -3408,8 +3455,8 @@ family.</p>
 <td align="left">T-box</td>
 <td align="left">Immunoglobulin fold</td>
 <td align="left">T-Box factors</td>
-<td align="left">NA</td>
-<td align="left">6.5</td>
+<td align="left">Brachyury-related;TBX1-related;TBX2-related;TBX6-related</td>
+<td align="left">6.5.1;6.5.3;6.5.4;6.5.5</td>
 </tr>
 <tr class="even">
 <td align="left">Ndt80/PhoG</td>
@@ -3422,15 +3469,15 @@ family.</p>
 <td align="left">Grainyhead</td>
 <td align="left">Immunoglobulin fold</td>
 <td align="left">Grainyhead</td>
-<td align="left">NA</td>
-<td align="left">6.7</td>
+<td align="left">Grainyhead-related;CP2-related</td>
+<td align="left">6.7.1;6.7.2</td>
 </tr>
 <tr class="even">
 <td align="left">SMAD</td>
 <td align="left">beta-Hairpin exposed by an alpha/beta-scaffold</td>
 <td align="left">SMAD/NF-1 DNA-binding domain factors</td>
-<td align="left">NA</td>
-<td align="left">7.1</td>
+<td align="left">SMAD;NF-1</td>
+<td align="left">7.1.1;7.1.2</td>
 </tr>
 <tr class="odd">
 <td align="left">GCM</td>
@@ -3450,7 +3497,7 @@ family.</p>
 <td align="left">AT hook</td>
 <td align="left">beta-Sheet binding to DNA</td>
 <td align="left">A.T hook factors</td>
-<td align="left">NA</td>
+<td align="left">A.T hook factors</td>
 <td align="left">8.2</td>
 </tr>
 <tr class="even">
@@ -3466,57 +3513,46 @@ family.</p>
 <div class="section level2">
 <h2 id="identifying-and-classifying-tfs">Identifying and classifying TFs<a class="anchor" aria-label="anchor" href="#identifying-and-classifying-tfs"></a>
 </h2>
-<p>To identify TFs from protein sequence data, you will use the function
-<code><a href="../reference/annotate_domains.html">annotate_domains()</a></code>. This function takes as input an
-<code>AAStringSet</code> object <a class="footnote-ref" tabindex="0" data-bs-toggle="popover" data-bs-content='&lt;p&gt;&lt;strong&gt;Tip:&lt;/strong&gt; If you have protein sequences in a
+<p>To identify TFs from whole-genome protein sequence data, you will use
+the function <code><a href="../reference/annotate_domains.html">annotate_domains()</a></code>. This function takes as
+input an <code>AAStringSet</code> object <a class="footnote-ref" tabindex="0" data-bs-toggle="popover" data-bs-content='&lt;p&gt;&lt;strong&gt;Tip:&lt;/strong&gt; If you have protein sequences in a
 FASTA file, you can read them into an &lt;code&gt;AAStringSet&lt;/code&gt; object
 with the function &lt;code&gt;readAAStringSet()&lt;/code&gt; from the &lt;em&gt;&lt;a href="https://bioconductor.org/packages/3.24/Biostrings" class="external-link"&gt;Biostrings&lt;/a&gt;&lt;/em&gt;
-package.&lt;/p&gt;'><sup>1</sup></a> and returns a list of data frames
-(<code>PlantTFDB</code>, <code>TAPscan</code>, and <code>CISBP</code>)
-with the protein domains used by each classification scheme. By default,
-domains are annotated for all classification schemes, but you can choose
-specific schemes with the argument <code>scheme</code> (e.g.,
-<code>scheme = "CISBP"</code> if you are only interested in CIS-BP and
-TFClass classifications, which are the only schemes for non-plant
-species). The HMMER program <span class="citation">(Finn et al.
-2011)</span> is used to scan protein sequences for the presence of
-DNA-binding protein domains, as well as auxiliary and forbidden domains.
-Pre-built HMM profiles can be found in the <em>extdata/</em> directory
-of this package. If you have a multicore machine, you can speed up HMMER
-searches by increasing the number of threads with the argument
-<code>threads</code>.</p>
-<p>Before running <code><a href="../reference/annotate_domains.html">annotate_domains()</a></code>, make sure your
-protein sequences are suitable for genome-wide TF identification:</p>
-<div class="callout">
-<p><strong>Use only one isoform per gene.</strong> Proteomes with all
+package.&lt;/p&gt;'><sup>1</sup></a> and returns a list of
+data frames (<code>PlantTFDB</code>, <code>TAPscan</code>, and
+<code>CISBP</code>) with the protein domains used by each classification
+scheme. By default, domains are annotated for all classification
+schemes, but you can choose specific schemes with the argument
+<code>scheme</code> (e.g., <code>scheme = "CISBP"</code>). The HMMER
+program <span class="citation">(Finn et al. 2011)</span> is used to scan
+protein sequences for the presence of DNA-binding protein domains, as
+well as auxiliary and forbidden domains. Pre-built HMM profiles can be
+found in the <em>extdata/</em> directory of this package.</p>
+<p>Before running <code><a href="../reference/annotate_domains.html">annotate_domains()</a></code>, make sure that you
+have a full proteome (i.e., protein sequences encoded by all
+protein-coding genes in the genome) for a given species. E-values
+reported by HMMER depend on the number of sequences that are searched,
+so domain hits with E-values close to the thresholds may pass or fail
+filtering depending on the size of the input data set. For consistent
+results, run <code><a href="../reference/annotate_domains.html">annotate_domains()</a></code> on the whole proteome
+instead of on subsets of it (e.g., chunks of sequences or candidate TFs
+only). It’s also important to make sure that you use:</p>
+<ul>
+<li><p><strong>Only one isoform per gene.</strong> Proteomes with all
 isoforms of each gene will result in redundant TFs, as each isoform is
 treated as a separate gene. We recommend using the translated sequences
 of the longest (or canonical/primary) transcript of each gene. Note,
 however, that some TFs could be missed if their DBDs are only present in
 other isoforms (e.g., 15 human TFs in CIS-BP have DBDs that are only
-detected in isoforms other than the longest).</p>
-</div>
-<div class="callout">
-<p><strong>Use only proteins encoded by the primary genome
+detected in isoforms other than the longest).</p></li>
+<li><p><strong>Only proteins encoded by the primary genome
 assembly.</strong> Some proteome files (e.g., the <code>pep.all</code>
 files from Ensembl) also include proteins encoded by alternative
 haplotypes and assembly patches, which are copies of genes in the
 primary assembly. For example, the human proteome in Ensembl includes
 &gt;100 copies of TFs encoded in alternative haplotypes and patches,
-which would be identified as additional TFs.</p>
-</div>
-<div class="callout">
-<p><strong>Annotate domains in the whole proteome at once.</strong>
-E-values reported by HMMER depend on the number of sequences that are
-searched, so domain hits with E-values close to the thresholds may pass
-or fail filtering depending on the size of the input data set. For
-consistent results, run <code><a href="../reference/annotate_domains.html">annotate_domains()</a></code> on the whole
-proteome instead of on subsets of it (e.g., chunks of sequences or
-candidate TFs only). For the same reason, TFs with E-values close to the
-thresholds may also differ between <em><a href="https://github.com/almeidasilvaf/tfhunter" class="external-link">tfhunter</a></em> and
-CIS-BP, which used different versions of Pfam profile HMMs and
-proteomes.</p>
-</div>
+which would be identified as additional TFs.</p></li>
+</ul>
 <p>This is how you can run <code><a href="../reference/annotate_domains.html">annotate_domains()</a></code> <a class="footnote-ref" tabindex="0" data-bs-toggle="popover" data-bs-content='&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; in the code chunk below, the if
 statement is not required. We just added it to make sure that the
 function &lt;code&gt;&lt;a href="../reference/annotate_domains.html"&gt;annotate_domains()&lt;/a&gt;&lt;/code&gt; is only executed if HMMER is
@@ -3557,7 +3593,16 @@ that do not have HMMER installed.&lt;/p&gt;'><sup>2</sup></a>:</p>
 <span><span class="co">#&gt; 3  gsu74290.1 PF00010   53  1.3e-07       10     46</span></span>
 <span><span class="co">#&gt; 4 gsu127100.1 PF00046   57  6.7e-13        7     57</span></span>
 <span><span class="co">#&gt; 5 gsu109490.1 PF00046   57  8.5e-13        3     54</span></span>
-<span><span class="co">#&gt; 6  gsu95810.1 PF00096   23  2.1e-08        1     23</span></span></code></pre></div>
+<span><span class="co">#&gt; 6  gsu95810.1 PF00096   23  2.1e-08        1     23</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $TFClass</span></span>
+<span><span class="co">#&gt;          Gene Domain qlen c_evalue hmm_from hmm_to score method</span></span>
+<span><span class="co">#&gt; 1  gsu06730.1  1.1.1   63  1.3e-06        4     49  18.8    HMM</span></span>
+<span><span class="co">#&gt; 2  gsu06730.1  1.1.5   64  1.1e-05        2     37  16.7    HMM</span></span>
+<span><span class="co">#&gt; 3  gsu06730.1  1.1.7   64  2.3e-05        8     55  15.1    HMM</span></span>
+<span><span class="co">#&gt; 4 gsu105330.1  1.1.5   64  7.2e-05        3     46  13.9    HMM</span></span>
+<span><span class="co">#&gt; 5 gsu105330.1  1.1.7   64  3.1e-05        1     51  16.1    HMM</span></span>
+<span><span class="co">#&gt; 6 gsu105350.1  1.1.1   63  2.9e-05        7     44  15.5    HMM</span></span></code></pre></div>
 <p>Now that we have our TF-related domains, we can classify TFs in
 families with the function <code><a href="../reference/classify_tfs.html">classify_tfs()</a></code>.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
@@ -3587,27 +3632,35 @@ families with the function <code><a href="../reference/classify_tfs.html">classi
 <span><span class="co">#&gt; 4          Tryptophan cluster factors         MYB-related     Myb/SANT</span></span>
 <span><span class="co">#&gt; 5 Basic leucine zipper factors (bZIP)                bZIP         bZIP</span></span>
 <span><span class="co">#&gt; 6                                &lt;NA&gt;                &lt;NA&gt;         &lt;NA&gt;</span></span>
-<span><span class="co">#&gt;         TFClass_superclass                       TFClass_class TFClass_family</span></span>
-<span><span class="co">#&gt; 1                     &lt;NA&gt;                                &lt;NA&gt;           &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 2                     &lt;NA&gt;                                &lt;NA&gt;           &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 3                     &lt;NA&gt;                                &lt;NA&gt;           &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 4 Helix-turn-helix domains          Tryptophan cluster factors       Myb-SANT</span></span>
-<span><span class="co">#&gt; 5            Basic domains Basic leucine zipper factors (bZIP)           &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 6                     &lt;NA&gt;                                &lt;NA&gt;           &lt;NA&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt;         TFClass_superclass                       TFClass_class</span></span>
+<span><span class="co">#&gt; 1                     &lt;NA&gt;                                &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 2                     &lt;NA&gt;                                &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 3                     &lt;NA&gt;                                &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 4 Helix-turn-helix domains          Tryptophan cluster factors</span></span>
+<span><span class="co">#&gt; 5            Basic domains Basic leucine zipper factors (bZIP)</span></span>
+<span><span class="co">#&gt; 6                     &lt;NA&gt;                                &lt;NA&gt;</span></span>
+<span><span class="co">#&gt;                                                                                          TFClass_family</span></span>
+<span><span class="co">#&gt; 1                                                                                                  &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 2                                                                                                  &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 3                                                                                                  &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 4                                                                                              Myb-SANT</span></span>
+<span><span class="co">#&gt; 5 Jun-related;Fos-related;Maf-related;B-ATF-related;XBP1-related;ATF4-related;CREB-related;CEBP-related</span></span>
+<span><span class="co">#&gt; 6                                                                                                  &lt;NA&gt;</span></span></code></pre></div>
 <p>The output contains one row per gene, and genes that are not
 classified by one of the schemes have <code>NA</code> in the respective
 columns. By default, <code><a href="../reference/classify_tfs.html">classify_tfs()</a></code> uses all classification
-schemes for which domain annotation is available. As Plant-TFClass
-classifications are inferred from TAPscan and PlantTFDB classifications,
-TAPscan and PlantTFDB annotations are required to obtain them. Likewise,
-TFClass classifications are inferred from CIS-BP classifications. As
-TAPscan’s scheme also includes other transcription-associated proteins
-(e.g., transcriptional regulators), more genes are usually classified
-with TAPscan.</p>
-<p>If you are interested in specific classification schemes, you can use
-the argument <code>scheme</code> to get only the classifications of
-these schemes. For TAPscan, the class of each family (TF, TR, or PT) is
-indicated in the column <code>TAP_class</code>.</p>
+schemes for which domain annotation is available. Obtaining
+classifications from TFClass and Plant-TFClass requires also classifying
+with CIS-BP and TAPscan, respectively. For TFClass,
+<code><a href="../reference/annotate_domains.html">annotate_domains()</a></code> also returns the evidence used to assign
+TFs to a single TFClass family (element <em>TFClass</em> of the
+output).</p>
+<p>You can also obtain classifications from specific schemes using the
+<code>scheme</code> argument. Of note, as TAPscan’s scheme also includes
+other transcription-associated proteins (e.g., transcriptional
+regulators), more genes are usually classified with TAPscan. TAP classes
+of each family (TF, TR, or PT) are indicated in the column
+<code>TAP_class</code>.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get TAPscan classifications only</span></span>
 <span><span class="va">tapscan_families</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/classify_tfs.html">classify_tfs</a></span><span class="op">(</span><span class="va">gsu_annotation</span>, scheme <span class="op">=</span> <span class="st">"TAPscan"</span><span class="op">)</span></span>
@@ -3636,18 +3689,6 @@ indicated in the column <code>TAP_class</code>.</p>
 <span><span class="co">#&gt; 4 gsu06730.1                 &lt;NA&gt;                &lt;NA&gt;         bZIP</span></span>
 <span><span class="co">#&gt; 5 gsu08760.1                 &lt;NA&gt;                &lt;NA&gt;           DM</span></span>
 <span><span class="co">#&gt; 6 gsu09770.1                  C3H                 C3H         &lt;NA&gt;</span></span></code></pre></div>
-<p>TAP classes, as well as descriptions and references for each TAPscan
-family, are available in the data set <code>tap_class</code>.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">tap_class</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">tap_class</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"TAP_family"</span>, <span class="st">"TAP_class"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   TAP_family TAP_class</span></span>
-<span><span class="co">#&gt; 1   ABI3/VP1        TF</span></span>
-<span><span class="co">#&gt; 2        AP2        TF</span></span>
-<span><span class="co">#&gt; 3        ARF        TF</span></span>
-<span><span class="co">#&gt; 4       ARID        TF</span></span>
-<span><span class="co">#&gt; 5 Alfin-like        TF</span></span>
-<span><span class="co">#&gt; 6  Argonaute        TR</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="counting-tfs-per-family-in-multiple-species-at-once">Counting TFs per family in multiple species at once<a class="anchor" aria-label="anchor" href="#counting-tfs-per-family-in-multiple-species-at-once"></a>
@@ -3668,13 +3709,13 @@ sequences for multiple species as FASTA files in a given directory, you
 can read them all as a list of &lt;code&gt;AAStringSet&lt;/code&gt; objects with the
 function &lt;code&gt;fasta2AAStringSetlist()&lt;/code&gt; from the Bioconductor
 package &lt;em&gt;&lt;a href="https://bioconductor.org/packages/3.24/syntenet" class="external-link"&gt;syntenet&lt;/a&gt;&lt;/em&gt;.&lt;/p&gt;'><sup>3</sup></a>, you could run:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">families</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">proteomes</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="../reference/classify_tfs.html">classify_tfs</a></span><span class="op">(</span><span class="fu"><a href="../reference/annotate_domains.html">annotate_domains</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>To demonstrate how <code><a href="../reference/get_tf_counts.html">get_tf_counts()</a></code> works, we will
 simulate TF classifications for 4 species by sampling 100 random genes
 from the TF classifications we obtained above
 (<code>gsu_families</code>) 4 times.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span> <span class="co"># for reproducibility</span></span>
 <span></span>
 <span><span class="co"># Simulate 4 different species by sampling 100 random genes </span></span>
@@ -3686,7 +3727,7 @@ from the TF classifications we obtained above
 <span><span class="op">)</span></span></code></pre></div>
 <p>Now, let’s also create a simulated species metadata data frame for
 each “species”.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create simulated species metadata</span></span>
 <span><span class="va">species_metadata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>    row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">families</span><span class="op">)</span>,</span>
@@ -3713,7 +3754,7 @@ per CIS-BP family, but you can choose other schemes with the argument
 PlantTFDB and TAPscan, ‘superclass’, ‘class’, and ‘family’ for
 Plant-TFClass and TFClass, and ‘family’ for CIS-BP (see column
 <em>Levels</em> in the output of <code><a href="../reference/list_schemes.html">list_schemes()</a></code>).</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get TF counts per CIS-BP family in each species</span></span>
 <span><span class="va">tf_counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_tf_counts.html">get_tf_counts</a></span><span class="op">(</span><span class="va">families</span>, <span class="va">species_metadata</span><span class="op">)</span></span>
 <span></span>
@@ -3765,7 +3806,7 @@ Plant-TFClass and TFClass, and ‘family’ for CIS-BP (see column
 (e.g., subfamilies), the <code>rowData</code> of the output contains the
 higher levels of each row, which you can use to aggregate counts. Here
 is an example with PlantTFDB subfamilies:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get TF counts per PlantTFDB subfamily</span></span>
 <span><span class="va">subfam_counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_tf_counts.html">get_tf_counts</a></span><span class="op">(</span></span>
 <span>    <span class="va">families</span>, scheme <span class="op">=</span> <span class="st">"PlantTFDB"</span>, level <span class="op">=</span> <span class="st">"subfamily"</span></span>
@@ -3786,7 +3827,7 @@ is an example with PlantTFDB subfamilies:</p>
 input, you can also filter them before counting. For example, here is
 how you can get counts of TAPscan TFs (excluding TRs and PTs) per
 subfamily:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Keep only TFs in TAPscan classifications</span></span>
 <span><span class="va">tapscan_tfs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">families</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">[</span><span class="va">x</span><span class="op">$</span><span class="va">TAP_class</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="st">"TF"</span>, <span class="op">]</span><span class="op">)</span></span>
 <span></span>
@@ -3802,8 +3843,9 @@ subfamily:</p>
 <span><span class="co">#&gt; C2C2_GATA    1    1    2    2</span></span>
 <span><span class="co">#&gt; C2H2         2    3    0    4</span></span>
 <span><span class="co">#&gt; C3H          4    6    2    2</span></span></code></pre></div>
-<p>Here is how you can get TF counts per Plant-TFClass superclass:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<p>As additional examples, here is how you can get TF counts per
+Plant-TFClass superclass, and per TFClass class:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get TF counts per Plant-TFClass superclass</span></span>
 <span><span class="va">superclass_counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_tf_counts.html">get_tf_counts</a></span><span class="op">(</span></span>
 <span>    <span class="va">families</span>, scheme <span class="op">=</span> <span class="st">"PlantTFClass"</span>, level <span class="op">=</span> <span class="st">"superclass"</span></span>
@@ -3815,25 +3857,9 @@ subfamily:</p>
 <span><span class="co">#&gt; Helix-turn-helix domains                      27   24   33   21</span></span>
 <span><span class="co">#&gt; Other all-alpha-helical DNA-binding domains    1    1    2    2</span></span>
 <span><span class="co">#&gt; Yet undefined DNA-binding domains              1    1    1    0</span></span>
-<span><span class="co">#&gt; Zinc-coordinating DNA-binding domains          3    4    2    6</span></span></code></pre></div>
-<p>Here is how you can get TF counts per PlantTFDB family:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Get TF counts per PlantTFDB family</span></span>
-<span><span class="va">ptfdb_counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_tf_counts.html">get_tf_counts</a></span><span class="op">(</span><span class="va">families</span>, scheme <span class="op">=</span> <span class="st">"PlantTFDB"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu">SummarizedExperiment</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assay</a></span><span class="op">(</span><span class="va">ptfdb_counts</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;      Gsu1 Gsu2 Gsu3 Gsu4</span></span>
-<span><span class="co">#&gt; bHLH    3    2    0    1</span></span>
-<span><span class="co">#&gt; bZIP    7    7    2    7</span></span>
-<span><span class="co">#&gt; C2C2    3    3    7    3</span></span>
-<span><span class="co">#&gt; C2H2    1    2    0    5</span></span>
-<span><span class="co">#&gt; C3H     5    6    3    2</span></span>
-<span><span class="co">#&gt; CPP     1    1    1    0</span></span></code></pre></div>
-<p>Finally, here is how you can get TF counts per TFClass class. Note
-that TFs without a classification at the chosen level (e.g., TFs without
-a TFClass family when <code>level = "family"</code>) are not
-counted.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Get TF counts per TFClass class</span></span>
+<span><span class="co">#&gt; Zinc-coordinating DNA-binding domains          3    4    2    6</span></span>
+<span></span>
+<span><span class="co"># Get TF counts per TFClass class</span></span>
 <span><span class="va">tfclass_counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_tf_counts.html">get_tf_counts</a></span><span class="op">(</span><span class="va">families</span>, scheme <span class="op">=</span> <span class="st">"TFClass"</span>, level <span class="op">=</span> <span class="st">"class"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu">SummarizedExperiment</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assay</a></span><span class="op">(</span><span class="va">tfclass_counts</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                                         Gsu1 Gsu2 Gsu3 Gsu4</span></span>
@@ -3850,23 +3876,104 @@ or traits of each species (e.g., higher frequencies of a stress-related
 TF family in a species that inhabits a stressful environment).</p>
 </div>
 <div class="section level2">
+<h2 id="curated-human-tfs">Curated human TFs<a class="anchor" aria-label="anchor" href="#curated-human-tfs"></a>
+</h2>
+<p>The human TFs were manually curated by experts <span class="citation">(Lambert et al. 2018)</span>, who examined each
+candidate protein and the evidence for its sequence-specific DNA
+binding. This curated list is more accurate than TFs identified from the
+human proteome based on DBDs only (e.g., several chromatin regulators
+and RNA-binding proteins contain DBD-like domains), so we provide it in
+the data set <code>human_tfs</code>, with TFs already classified with
+the CIS-BP and TFClass schemes.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">human_tfs</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">human_tfs</span><span class="op">)</span></span>
+<span><span class="co">#&gt;              Gene     Symbol CISBP_family                    TFClass_superclass</span></span>
+<span><span class="co">#&gt; 1 ENSG00000267179 AC008770.3      C2H2 ZF Zinc-coordinating DNA-binding domains</span></span>
+<span><span class="co">#&gt; 2 ENSG00000267281 AC023509.3 bZIP,C2H2 ZF                         Basic domains</span></span>
+<span><span class="co">#&gt; 3 ENSG00000233757 AC092835.1      C2H2 ZF Zinc-coordinating DNA-binding domains</span></span>
+<span><span class="co">#&gt; 4 ENSG00000264668 AC138696.1      C2H2 ZF Zinc-coordinating DNA-binding domains</span></span>
+<span><span class="co">#&gt; 5 ENSG00000101126       ADNP  Homeodomain              Helix-turn-helix domains</span></span>
+<span><span class="co">#&gt; 6 ENSG00000101544      ADNP2  Homeodomain              Helix-turn-helix domains</span></span>
+<span><span class="co">#&gt;                         TFClass_class</span></span>
+<span><span class="co">#&gt; 1            C2H2 zinc finger factors</span></span>
+<span><span class="co">#&gt; 2 Basic leucine zipper factors (bZIP)</span></span>
+<span><span class="co">#&gt; 3            C2H2 zinc finger factors</span></span>
+<span><span class="co">#&gt; 4            C2H2 zinc finger factors</span></span>
+<span><span class="co">#&gt; 5                Homeo domain factors</span></span>
+<span><span class="co">#&gt; 6                Homeo domain factors</span></span>
+<span><span class="co">#&gt;                                                                                                                                                          TFClass_family</span></span>
+<span><span class="co">#&gt; 1 Three-zinc finger Krüppel-related;Other factors with up to three adjacent zinc fingers;More than 3 adjacent zinc fingers;Factors with multiple dispersed zinc fingers</span></span>
+<span><span class="co">#&gt; 2                                                                                                                                                           Jun-related</span></span>
+<span><span class="co">#&gt; 3 Three-zinc finger Krüppel-related;Other factors with up to three adjacent zinc fingers;More than 3 adjacent zinc fingers;Factors with multiple dispersed zinc fingers</span></span>
+<span><span class="co">#&gt; 4                                                                                                                                     More than 3 adjacent zinc fingers</span></span>
+<span><span class="co">#&gt; 5                                                                                                                                                                 HD-ZF</span></span>
+<span><span class="co">#&gt; 6                                                                                                                                                                 HD-ZF</span></span>
+<span><span class="co">#&gt;         TFClass_source         DBD                     TF_assessment</span></span>
+<span><span class="co">#&gt; 1 Inferred from CIS-BP     C2H2 ZF Likely to be sequence specific TF</span></span>
+<span><span class="co">#&gt; 2              TFClass        bZIP                       Known motif</span></span>
+<span><span class="co">#&gt; 3 Inferred from CIS-BP     C2H2 ZF Likely to be sequence specific TF</span></span>
+<span><span class="co">#&gt; 4              TFClass     C2H2 ZF                       Known motif</span></span>
+<span><span class="co">#&gt; 5              TFClass Homeodomain Likely to be sequence specific TF</span></span>
+<span><span class="co">#&gt; 6              TFClass Homeodomain Likely to be sequence specific TF</span></span>
+<span><span class="co">#&gt;              Binding_mode           Motif_status</span></span>
+<span><span class="co">#&gt; 1 Monomer or homomultimer               No motif</span></span>
+<span><span class="co">#&gt; 2 Monomer or homomultimer 100 perc ID - in vitro</span></span>
+<span><span class="co">#&gt; 3 Monomer or homomultimer               No motif</span></span>
+<span><span class="co">#&gt; 4 Monomer or homomultimer 100 perc ID - in vitro</span></span>
+<span><span class="co">#&gt; 5 Monomer or homomultimer               No motif</span></span>
+<span><span class="co">#&gt; 6 Monomer or homomultimer               No motif</span></span>
+<span></span>
+<span><span class="co"># Number of TFs per DNA-binding assessment</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">human_tfs</span><span class="op">$</span><span class="va">TF_assessment</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;                    Inferred motif                       Known motif </span></span>
+<span><span class="co">#&gt;                               104                              1107 </span></span>
+<span><span class="co">#&gt; Likely to be sequence specific TF </span></span>
+<span><span class="co">#&gt;                               428</span></span></code></pre></div>
+<p>TFClass classifications were obtained directly from TFClass for TFs
+in TFClass (column <em>TFClass_source</em>), and inferred from CIS-BP
+families for other TFs. As <code>human_tfs</code> has the same columns
+as the output of <code><a href="../reference/classify_tfs.html">classify_tfs()</a></code> for the CIS-BP and TFClass
+schemes, you can pass it to <code><a href="../reference/get_tf_counts.html">get_tf_counts()</a></code> together with
+your own classifications (e.g.,
+<code>list(Human = human_tfs, Species2 = ...)</code>).</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Count human TFs per TFClass superclass</span></span>
+<span><span class="va">human_counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_tf_counts.html">get_tf_counts</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>Human <span class="op">=</span> <span class="va">human_tfs</span><span class="op">)</span>, scheme <span class="op">=</span> <span class="st">"TFClass"</span>, level <span class="op">=</span> <span class="st">"superclass"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu">SummarizedExperiment</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assay</a></span><span class="op">(</span><span class="va">human_counts</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                                                Human</span></span>
+<span><span class="co">#&gt; alpha-Helices exposed by beta-structures          15</span></span>
+<span><span class="co">#&gt; Basic domains                                    168</span></span>
+<span><span class="co">#&gt; beta-Barrel DNA-binding domains                    5</span></span>
+<span><span class="co">#&gt; beta-Hairpin exposed by an alpha/beta-scaffold    11</span></span>
+<span><span class="co">#&gt; beta-Sheet binding to DNA                          8</span></span>
+<span><span class="co">#&gt; Helix-turn-helix domains                         377</span></span>
+<span><span class="co">#&gt; Immunoglobulin fold                               53</span></span>
+<span><span class="co">#&gt; Other all-alpha-helical DNA-binding domains       32</span></span>
+<span><span class="co">#&gt; Yet undefined DNA-binding domains                  9</span></span>
+<span><span class="co">#&gt; Zinc-coordinating DNA-binding domains            840</span></span></code></pre></div>
+</div>
+<div class="section level2">
 <h2 class="unnumbered" id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>
 </h2>
 <p>This document was created under the following conditions:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">sessioninfo</span><span class="fu">::</span><span class="fu"><a href="https://sessioninfo.r-lib.org/reference/session_info.html" class="external-link">session_info</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB; font-weight: bold;">─ Session info ───────────────────────────────────────────────────────────────</span></span></span>
 <span><span class="co">#&gt;  <span style="color: #555555; font-style: italic;">setting </span> <span style="color: #555555; font-style: italic;">value</span></span></span>
 <span><span class="co">#&gt;  version  R version 4.6.1 (2026-06-24)</span></span>
-<span><span class="co">#&gt;  os       Ubuntu 24.04.4 LTS</span></span>
+<span><span class="co">#&gt;  os       Ubuntu 24.04.5 LTS</span></span>
 <span><span class="co">#&gt;  system   x86_64, linux-gnu</span></span>
 <span><span class="co">#&gt;  ui       X11</span></span>
 <span><span class="co">#&gt;  language en</span></span>
 <span><span class="co">#&gt;  collate  en_US.UTF-8</span></span>
 <span><span class="co">#&gt;  ctype    en_US.UTF-8</span></span>
 <span><span class="co">#&gt;  tz       UTC</span></span>
-<span><span class="co">#&gt;  date     2026-10-15</span></span>
-<span><span class="co">#&gt;  pandoc   3.11 @ /usr/bin/ (via rmarkdown)</span></span>
+<span><span class="co">#&gt;  date     2026-10-29</span></span>
+<span><span class="co">#&gt;  pandoc   3.12.1 @ /usr/bin/ (via rmarkdown)</span></span>
 <span><span class="co">#&gt;  quarto   1.10.19 @ /usr/local/bin/quarto</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB; font-weight: bold;">─ Packages ───────────────────────────────────────────────────────────────────</span></span></span>
@@ -3896,9 +4003,9 @@ TF family in a species that inhabits a stressful environment).</p>
 <span><span class="co">#&gt;  jquerylib              0.1.4   <span style="color: #555555;">2021-04-26</span> <span style="color: #555555;">[2]</span> <span style="color: #BB00BB; font-weight: bold;">RSPM (R 4.6.0)</span></span></span>
 <span><span class="co">#&gt;  jsonlite               2.0.0   <span style="color: #555555;">2025-03-27</span> <span style="color: #555555;">[2]</span> <span style="color: #BB00BB; font-weight: bold;">RSPM (R 4.6.0)</span></span></span>
 <span><span class="co">#&gt;  knitr                  1.52    <span style="color: #555555;">2026-09-06</span> <span style="color: #555555;">[2]</span> <span style="color: #BB00BB; font-weight: bold;">RSPM (R 4.6.0)</span></span></span>
-<span><span class="co">#&gt;  lattice                0.23-1  <span style="color: #555555;">2026-08-12</span> <span style="color: #555555;">[2]</span> <span style="color: #BB00BB; font-weight: bold;">RSPM (R 4.6.0)</span></span></span>
+<span><span class="co">#&gt;  lattice                0.23-1  <span style="color: #555555;">2026-08-12</span> <span style="color: #555555;">[2]</span> <span style="color: #BB00BB; font-weight: bold;">RSPM (R 4.6.1)</span></span></span>
 <span><span class="co">#&gt;  lifecycle              1.0.5   <span style="color: #555555;">2026-01-08</span> <span style="color: #555555;">[2]</span> <span style="color: #BB00BB; font-weight: bold;">RSPM (R 4.6.0)</span></span></span>
-<span><span class="co">#&gt;  Matrix                 1.7-6   <span style="color: #555555;">2026-07-25</span> <span style="color: #555555;">[2]</span> <span style="color: #BB00BB; font-weight: bold;">RSPM (R 4.6.0)</span></span></span>
+<span><span class="co">#&gt;  Matrix                 1.7-6   <span style="color: #555555;">2026-07-25</span> <span style="color: #555555;">[2]</span> <span style="color: #BB00BB; font-weight: bold;">RSPM (R 4.6.1)</span></span></span>
 <span><span class="co">#&gt;  MatrixGenerics         1.25.0  <span style="color: #555555;">2026-04-28</span> <span style="color: #555555;">[1]</span> <span style="color: #555555;">Bioconductor 3.24 (R 4.6.1)</span></span></span>
 <span><span class="co">#&gt;  matrixStats            1.5.0   <span style="color: #555555;">2025-01-07</span> <span style="color: #555555;">[1]</span> <span style="color: #BB00BB; font-weight: bold;">RSPM (R 4.6.0)</span></span></span>
 <span><span class="co">#&gt;  otel                   0.2.0   <span style="color: #555555;">2025-08-29</span> <span style="color: #555555;">[2]</span> <span style="color: #BB00BB; font-weight: bold;">RSPM (R 4.6.0)</span></span></span>
@@ -3916,8 +4023,8 @@ TF family in a species that inhabits a stressful environment).</p>
 <span><span class="co">#&gt;  SummarizedExperiment   1.43.0  <span style="color: #555555;">2026-04-28</span> <span style="color: #555555;">[1]</span> <span style="color: #555555;">Bioconductor 3.24 (R 4.6.1)</span></span></span>
 <span><span class="co">#&gt;  systemfonts            1.3.2   <span style="color: #555555;">2026-03-05</span> <span style="color: #555555;">[2]</span> <span style="color: #BB00BB; font-weight: bold;">RSPM (R 4.6.0)</span></span></span>
 <span><span class="co">#&gt;  textshaping            1.0.5   <span style="color: #555555;">2026-03-06</span> <span style="color: #555555;">[2]</span> <span style="color: #BB00BB; font-weight: bold;">RSPM (R 4.6.0)</span></span></span>
-<span><span class="co">#&gt;  tfhunter             * 0.99.0  <span style="color: #555555;">2026-10-15</span> <span style="color: #555555;">[1]</span> <span style="color: #555555;">Bioconductor</span></span></span>
-<span><span class="co">#&gt;  xfun                   0.61    <span style="color: #555555;">2026-09-16</span> <span style="color: #555555;">[2]</span> <span style="color: #BB00BB; font-weight: bold;">RSPM (R 4.6.0)</span></span></span>
+<span><span class="co">#&gt;  tfhunter             * 0.99.0  <span style="color: #555555;">2026-10-29</span> <span style="color: #555555;">[1]</span> <span style="color: #555555;">Bioconductor</span></span></span>
+<span><span class="co">#&gt;  xfun                   0.62    <span style="color: #555555;">2026-10-16</span> <span style="color: #555555;">[2]</span> <span style="color: #BB00BB; font-weight: bold;">RSPM (R 4.6.0)</span></span></span>
 <span><span class="co">#&gt;  XVector                0.53.0  <span style="color: #555555;">2026-04-28</span> <span style="color: #555555;">[1]</span> <span style="color: #555555;">Bioconductor 3.24 (R 4.6.1)</span></span></span>
 <span><span class="co">#&gt;  yaml                   2.3.12  <span style="color: #555555;">2025-12-10</span> <span style="color: #555555;">[2]</span> <span style="color: #BB00BB; font-weight: bold;">RSPM (R 4.6.0)</span></span></span>
 <span><span class="co">#&gt; </span></span>
@@ -3948,6 +4055,11 @@ Jin, Jinpu, Feng Tian, De-Chang Yang, et al. 2017. <span>“PlantTFDB 4.0:
 Toward a Central Hub for Transcription Factors and Regulatory
 Interactions in Plants.”</span> <em>Nucleic Acids Research</em> 45 (D1):
 D1040–45. <a href="https://doi.org/10.1093/nar/gkw982" class="external-link">https://doi.org/10.1093/nar/gkw982</a>.
+</div>
+<div id="ref-lambert2018human" class="csl-entry">
+Lambert, Samuel A, Arttu Jolma, Laura F Campitelli, et al. 2018.
+<span>“The Human Transcription Factors.”</span> <em>Cell</em> 172 (4):
+650–65. <a href="https://doi.org/10.1016/j.cell.2018.01.029" class="external-link">https://doi.org/10.1016/j.cell.2018.01.029</a>.
 </div>
 <div id="ref-osuna2020seminavis" class="csl-entry">
 <span class="nocase">Osuna-Cruz, Cristina Maria, Gust Bilcke, Emmelien

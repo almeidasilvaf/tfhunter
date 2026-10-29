@@ -27,6 +27,9 @@
 - [`hmmer_is_installed()`](hmmer_is_installed.md) : Check if HMMER is
   installed
 
+- [`human_tfs`](human_tfs.md) : Curated human transcription factors and
+  their classifications
+
 - [`list_schemes()`](list_schemes.md) : List available TF classification
   schemes
 

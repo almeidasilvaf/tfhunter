@@ -18,6 +18,15 @@ own profile HMMs and filtering criteria:
   overlapping hits of different domains are resolved by keeping only the
   most significant hit (lowest independent E-value).
 
+- **TFClass**: evidence used to choose among multiple TFClass families
+  for TFs in CIS-BP families that correspond to more than one TFClass
+  family (e.g., CIS-BP's Homeodomain). TFs in the CIS-BP family C2H2 ZF
+  are compared to human and mouse C2H2 ZF TFs with known TFClass
+  families based on shared amino acid 5-mers, and other TFs are scanned
+  with profile HMMs of the DNA-binding domains of each TFClass family
+  (built from human and mouse TFs). See
+  [`classify_tfs()`](classify_tfs.md) for details.
+
 ## Usage
 
 ``` r
@@ -54,8 +63,8 @@ annotate_domains(seq = NULL, scheme = "all", evalue = 1e-05, threads = 1)
 ## Value
 
 A list of data frames with domain annotation for each domain annotation
-set required by the chosen scheme(s) (**PlantTFDB**, **TAPscan**, and/or
-**CISBP**; see variable **Annotation** in
+set required by the chosen scheme(s) (**PlantTFDB**, **TAPscan**,
+**CISBP**, and/or **TFClass**; see variable **Annotation** in
 [`list_schemes()`](list_schemes.md)). All data frames have one row per
 domain hit and the following variables:
 
@@ -82,6 +91,22 @@ domain hit and the following variables:
 
 Rows are kept in the same order as in the HMMER output, as this order is
 used by the TAPscan classification algorithm.
+
+The data frame **TFClass** has one row per gene and candidate TFClass
+family, with **Domain** indicating the TFClass family ID, and two
+additional variables:
+
+- score:
+
+  Numeric, bit score of the profile HMM of the TFClass family (for the
+  whole sequence), or fraction of the gene's 5-mers shared with the most
+  similar reference C2H2 ZF TF in the TFClass family.
+
+- method:
+
+  Character, method used to obtain the score ('HMM' or 'k-mer'). For
+  'k-mer', variables **qlen**, **c_evalue**, **hmm_from**, and
+  **hmm_to** are NA.
 
 ## Examples
 

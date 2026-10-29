@@ -5,6 +5,18 @@
 - **Fabrício Almeida-Silva**. Author, maintainer.
   [](https://orcid.org/0000-0002-5314-2964)
 
+- **Romain Blanc-Mathieu**. Contributor.
+  [](https://orcid.org/0000-0002-9485-6330)
+
+- **Stefan Rensing**. Contributor.
+  [](https://orcid.org/0000-0002-0225-873X)
+
+- **Klaas Vandepoele**. Contributor.
+  [](https://orcid.org/0000-0003-4790-2725)
+
+- **François Parcy**. Contributor.
+  [](https://orcid.org/0000-0003-2191-500X)
+
 - **Yves Van de Peer**. Author.
   [](https://orcid.org/0000-0003-4327-3730)
 
@@ -13,13 +25,14 @@
 Source:
 [`inst/CITATION`](https://github.com/almeidasilvaf/tfhunter/blob/devel/inst/CITATION)
 
-Almeida-Silva F, Van de Peer Y (2026). *tfhunter: Identification and
-classification of eukaryotic transcription factors*. R package version
-0.99.0, <https://bioconductor.org/packages/tfhunter>.
+Almeida-Silva F, Blanc-Mathieu R, Rensing S, Vandepoele K, Parcy F, Van
+de Peer Y (2026). *tfhunter: Identification and classification of
+eukaryotic transcription factors*. R package version 0.99.0,
+<https://bioconductor.org/packages/tfhunter>.
 
 @Manual{tfhunter,\
   title = {tfhunter: Identification and classification of eukaryotic transcription factors},\
-  author = {Fabrício Almeida-Silva and Yves {Van de Peer}},\
+  author = {Fabrício Almeida-Silva and Romain Blanc-Mathieu and Stefan Rensing and Klaas Vandepoele and François Parcy and Yves {Van de Peer}},\
   year = {2026},\
   note = {R package version 0.99.0},\
   url = {https://bioconductor.org/packages/tfhunter},\

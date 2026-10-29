@@ -17,12 +17,23 @@ NEW FEATURES
   set of DBDs they contain (e.g., ‘Homeodomain,POU’). The scheme is
   available in the new data set `cisbp_scheme`.
 
-- Animal TFs can now be classified into the superclasses, classes, and
-  families of TFClass (Wingender et al., 2018), a structure-based
+- Mammalian TFs can now be classified into the superclasses, classes,
+  and families of TFClass (Wingender et al., 2018), a structure-based
   classification of human and other mammalian TFs. TFClass
   classifications are inferred from CIS-BP families using a
   correspondence table between the two systems, available in the new
-  data set `tfclass_scheme`.
+  data set `tfclass_scheme`. When a CIS-BP family corresponds to more
+  than one TFClass family (e.g., Homeodomain), TFs are assigned to a
+  single TFClass family based on their similarity to human and mouse TFs
+  with known TFClass families (shared 5-mers for C2H2 zinc finger TFs,
+  controlled by the new argument `min_shared` of
+  [`classify_tfs()`](../reference/classify_tfs.md), and profile HMMs of
+  TFClass families for other TFs). If that is not possible, all possible
+  TFClass families are reported, separated by ‘;’.
+
+- New data set `human_tfs` with the curated human TFs of Lambert et al.
+  (2018), classified with the CIS-BP and TFClass schemes, which can be
+  used instead of identifying human TFs from the human proteome.
 
 - New function [`list_schemes()`](../reference/list_schemes.md) to list
   available classification schemes, their taxonomic scope,

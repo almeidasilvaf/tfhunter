@@ -47,7 +47,7 @@ list_schemes()
 #> 2      TAPscan Plants and algae         family, subfamily            TAPscan
 #> 3 PlantTFClass           Plants superclass, class, family PlantTFDB, TAPscan
 #> 4        CISBP       Eukaryotes                    family              CISBP
-#> 5      TFClass          Animals superclass, class, family              CISBP
+#> 5      TFClass          Mammals superclass, class, family     CISBP, TFClass
 #>                                                        Reference
 #> 1                      Jin et al. (2017), doi:10.1093/nar/gkw982
 #> 2                   Petroll et al. (2025), doi:10.1111/tpj.17184

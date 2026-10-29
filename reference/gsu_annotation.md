@@ -13,8 +13,8 @@ data(gsu_annotation)
 
 ## Format
 
-A list of 3 data frames (**PlantTFDB**, **TAPscan**, and **CISBP**) with
-domain annotation, as returned by
+A list of 4 data frames (**PlantTFDB**, **TAPscan**, **CISBP**, and
+**TFClass**) with domain annotation, as returned by
 [`annotate_domains()`](annotate_domains.md).
 
 ## Examples

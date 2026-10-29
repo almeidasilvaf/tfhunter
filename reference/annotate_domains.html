@@ -13,6 +13,14 @@ by CIS-BP, with the thresholds used by CIS-BP (per-sequence E-value
 &amp;lt; 0.01 and per-domain conditional E-value &amp;lt; 0.01). As in CIS-BP,
 overlapping hits of different domains are resolved by keeping only
 the most significant hit (lowest independent E-value).
+TFClass: evidence used to choose among multiple
+TFClass families for TFs in CIS-BP families that correspond to more than
+one TFClass family (e.g., CIS-BP's Homeodomain). TFs in the CIS-BP family
+C2H2 ZF are compared to human and mouse C2H2 ZF TFs with known TFClass
+families based on shared amino acid 5-mers, and other TFs are scanned
+with profile HMMs of the DNA-binding domains of each TFClass family
+(built from human and mouse TFs). See classify_tfs() for
+details.
 
 "><meta property="og:description" content="Protein sequences are scanned with HMMER for the domains used by
 the classification schemes of choice (see list_schemes()).
@@ -28,6 +36,14 @@ by CIS-BP, with the thresholds used by CIS-BP (per-sequence E-value
 &amp;lt; 0.01 and per-domain conditional E-value &amp;lt; 0.01). As in CIS-BP,
 overlapping hits of different domains are resolved by keeping only
 the most significant hit (lowest independent E-value).
+TFClass: evidence used to choose among multiple
+TFClass families for TFs in CIS-BP families that correspond to more than
+one TFClass family (e.g., CIS-BP's Homeodomain). TFs in the CIS-BP family
+C2H2 ZF are compared to human and mouse C2H2 ZF TFs with known TFClass
+families based on shared amino acid 5-mers, and other TFs are scanned
+with profile HMMs of the DNA-binding domains of each TFClass family
+(built from human and mouse TFs). See classify_tfs() for
+details.
 
 "><meta property="og:image" content="/logo.png"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -80,6 +96,14 @@ by CIS-BP, with the thresholds used by CIS-BP (per-sequence E-value
 &lt; 0.01 and per-domain conditional E-value &lt; 0.01). As in CIS-BP,
 overlapping hits of different domains are resolved by keeping only
 the most significant hit (lowest independent E-value).</p></li>
+<li><p><strong>TFClass</strong>: evidence used to choose among multiple
+TFClass families for TFs in CIS-BP families that correspond to more than
+one TFClass family (e.g., CIS-BP's Homeodomain). TFs in the CIS-BP family
+C2H2 ZF are compared to human and mouse C2H2 ZF TFs with known TFClass
+families based on shared amino acid 5-mers, and other TFs are scanned
+with profile HMMs of the DNA-binding domains of each TFClass family
+(built from human and mouse TFs). See <code><a href="classify_tfs.html">classify_tfs()</a></code> for
+details.</p></li>
 </ul></div>
 
     <div class="section level2">
@@ -120,9 +144,9 @@ by <code>hmmsearch</code>. Default: 1.</p></dd>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A list of data frames with domain annotation for each domain
 annotation set required by the chosen scheme(s) (<strong>PlantTFDB</strong>,
-<strong>TAPscan</strong>, and/or <strong>CISBP</strong>; see variable <strong>Annotation</strong>
-in <code><a href="list_schemes.html">list_schemes()</a></code>). All data frames have one row per domain hit and
-the following variables:</p><dl><dt>Gene</dt>
+<strong>TAPscan</strong>, <strong>CISBP</strong>, and/or <strong>TFClass</strong>; see variable
+<strong>Annotation</strong> in <code><a href="list_schemes.html">list_schemes()</a></code>). All data frames have one
+row per domain hit and the following variables:</p><dl><dt>Gene</dt>
 <dd><p>Character, gene ID.</p></dd>
 
 <dt>Domain</dt>
@@ -141,7 +165,20 @@ in the profile HMM.</p></dd>
 
 </dl><p>Rows are kept in the same order as in the HMMER output, as this order
 is used by the TAPscan classification algorithm.</p>
-    </div>
+<p>The data frame <strong>TFClass</strong> has one row per gene and candidate TFClass
+family, with <strong>Domain</strong> indicating the TFClass family ID, and two
+additional variables:</p><dl><dt>score</dt>
+<dd><p>Numeric, bit score of the profile HMM of the TFClass
+family (for the whole sequence), or fraction of the gene's 5-mers shared
+with the most similar reference C2H2 ZF TF in the TFClass family.</p></dd>
+
+<dt>method</dt>
+<dd><p>Character, method used to obtain the score ('HMM' or
+'k-mer'). For 'k-mer', variables <strong>qlen</strong>, <strong>c_evalue</strong>,
+<strong>hmm_from</strong>, and <strong>hmm_to</strong> are NA.</p></dd>
+
+
+</dl></div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>

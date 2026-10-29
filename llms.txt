@@ -8,9 +8,10 @@ be classified into families and subfamilies using the classification
 schemes implemented in [PlantTFDB](https://doi.org/10.1093/nar/gkw982)
 and [TAPscan](https://doi.org/10.1111/tpj.17184), and into
 structure-based families, classes, and superclasses as in
-[Plant-TFClass](https://doi.org/10.1016/j.tplants.2023.06.023). Animal
-TFs can be classified into structure-based superclasses, classes, and
-families as in [TFClass](https://doi.org/10.1093/nar/gkx987).
+[Plant-TFClass](https://doi.org/10.1016/j.tplants.2023.06.023).
+Mammalian TFs can be classified into structure-based superclasses,
+classes, and families as in
+[TFClass](https://doi.org/10.1093/nar/gkx987).
 
 **tfhunter** is the successor of the Bioconductor package
 [planttfhunter](https://bioconductor.org/packages/planttfhunter).
@@ -45,15 +46,16 @@ Please run this yourself to check for any updates on how to cite
 `#> To cite tfhunter in publications, please cite the package and the`\
 `#> classification scheme(s) you used:`\
 `#> `\
-`#>   Almeida-Silva F, Van de Peer Y (2026). _tfhunter: Identification and`\
-`#>   classification of eukaryotic transcription factors_. R package`\
-`#>   version 0.99.0, <https://bioconductor.org/packages/tfhunter>.`\
+`#>   Almeida-Silva F, Blanc-Mathieu R, Rensing S, Vandepoele K, Parcy F,`\
+`#>   Van de Peer Y (2026). _tfhunter: Identification and classification of`\
+`#>   eukaryotic transcription factors_. R package version 0.99.0,`\
+`#>   <https://bioconductor.org/packages/tfhunter>.`\
 `#> `\
 `#> A BibTeX entry for LaTeX users is`\
 `#> `\
 `#>   @Manual{tfhunter,`\
 `#>     title = {tfhunter: Identification and classification of eukaryotic transcription factors},`\
-`#>     author = {Fabrício Almeida-Silva and Yves {Van de Peer}},`\
+`#>     author = {Fabrício Almeida-Silva and Romain Blanc-Mathieu and Stefan Rensing and Klaas Vandepoele and François Parcy and Yves {Van de Peer}},`\
 `#>     year = {2026},`\
 `#>     note = {R package version 0.99.0},`\
 `#>     url = {https://bioconductor.org/packages/tfhunter},`\
@@ -205,6 +207,9 @@ contributing to this project, you agree to abide by its terms.
 
 - [`hmmer_is_installed()`](hmmer_is_installed.md) : Check if HMMER is
   installed
+
+- [`human_tfs`](human_tfs.md) : Curated human transcription factors and
+  their classifications
 
 - [`list_schemes()`](list_schemes.md) : List available TF classification
   schemes
